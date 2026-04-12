@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, NavLink, useLocation } from "react-router-dom";
+import { Routes, Route, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Shield,
   LayoutDashboard,
   FilePlus,
   FolderOpen,
   Info,
-  Zap,
   Activity,
+  Zap,
+  Rocket,
+  Database,
+  Brain,
+  CheckCircle,
+  Clock,
+  ArrowRight,
 } from "lucide-react";
 
 import Dashboard from "./components/Dashboard";
@@ -26,125 +32,263 @@ const PAGE_TITLES = {
 };
 
 /* ======================================================================
-   ABOUT PAGE (inline — small enough to co-locate)
+   ABOUT PAGE — Professional roadmap (no personal info)
    ====================================================================== */
 function About() {
-  const team = [
-    { name: "Sahil S Puthran", usn: "4SO23CD046" },
-    { name: "Shashank", usn: "4SO23CD049" },
-    { name: "Swasthik Shetty", usn: "4SO23CD056" },
-    { name: "Yatheen Shetty B", usn: "4SO23CD063" },
+  const phases = [
+    {
+      phase: "Phase I",
+      title: "Regex NER Pipeline",
+      status: "ACTIVE",
+      statusColor: "#2EA043",
+      items: [
+        "7-type entity extraction via compiled regex patterns",
+        "SHA-256 evidence hashing (BSA 2023 §63 Part B)",
+        "Chronological timeline reconstruction",
+        "Thread-safe in-memory case storage",
+        "Dark forensic dashboard with real-time analytics",
+      ],
+    },
+    {
+      phase: "Phase II",
+      title: "IndicBERT + Neo4j Integration",
+      status: "PLANNED",
+      statusColor: "#484F58",
+      items: [
+        "IndicBERT transformer-based NER for Hinglish text",
+        "Neo4j graph database for cross-case entity linking",
+        "Relationship mapping between suspects, accounts, and transactions",
+        "Confidence scoring with model ensemble",
+        "Graph-based investigation path suggestions",
+      ],
+    },
+    {
+      phase: "Phase III",
+      title: "Production Deployment",
+      status: "FUTURE",
+      statusColor: "#484F58",
+      items: [
+        "PostgreSQL persistence layer",
+        "Role-based access control (RBAC)",
+        "PDF/DOCX report generation",
+        "Audit trail and chain-of-custody logging",
+        "Docker containerization and CI/CD pipeline",
+      ],
+    },
   ];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div style={{ maxWidth: "800px", margin: "0 auto" }}>
       {/* Header */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-cyan/20 to-accent-purple/20 border border-accent-cyan/30 mb-2">
-          <Shield className="w-8 h-8 text-accent-cyan" />
+      <div style={{ textAlign: "center", marginBottom: "32px" }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "56px",
+            height: "56px",
+            borderRadius: "12px",
+            background: "rgba(0,217,255,0.1)",
+            border: "1px solid rgba(0,217,255,0.3)",
+            marginBottom: "12px",
+          }}
+        >
+          <Shield size={28} color="#00D9FF" />
         </div>
-        <h1 className="text-3xl font-bold text-text-primary">CyberIntel</h1>
-        <p className="text-text-secondary text-lg">
-          AI-Assisted Cybercrime Investigation &amp; Forensic Intelligence System
+        <h1
+          style={{
+            fontSize: "24px",
+            fontWeight: "700",
+            color: "#E6EDF3",
+            marginBottom: "6px",
+          }}
+        >
+          CyberIntel
+        </h1>
+        <p style={{ fontSize: "14px", color: "#8B949E" }}>
+          AI-Assisted Cybercrime Investigation & Forensic Intelligence System
         </p>
-        <span className="inline-block px-3 py-1 text-xs font-mono rounded-full bg-accent-purple/15 text-accent-purple border border-accent-purple/30">
-          Phase I — Major Project
-        </span>
       </div>
 
-      {/* Description */}
-      <div className="bg-bg-card border border-border-default rounded-xl p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-text-primary">Project Overview</h2>
-        <p className="text-text-secondary leading-relaxed">
-          CyberIntel is a forensic intelligence platform designed for Indian law enforcement
-          to analyze cybercrime complaints. Using NLP-based entity extraction, SHA-256
-          evidence hashing compliant with BSA 2023 Section 63 Part B, and chronological
-          timeline reconstruction, the system transforms unstructured Hinglish complaint
-          narratives into structured, court-admissible investigative data.
+      {/* Description card */}
+      <div
+        style={{
+          background: "#161B22",
+          border: "1px solid #30363D",
+          borderRadius: "6px",
+          padding: "24px",
+          marginBottom: "24px",
+        }}
+      >
+        <p style={{ fontSize: "14px", color: "#8B949E", lineHeight: "1.7" }}>
+          CyberIntel is a forensic intelligence platform designed for Indian law
+          enforcement to analyze cybercrime complaints. Using NLP-based entity
+          extraction, SHA-256 evidence hashing compliant with BSA 2023 Section 63
+          Part B, and chronological timeline reconstruction, the system transforms
+          unstructured Hinglish complaint narratives into structured,
+          court-admissible investigative data.
         </p>
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <div className="bg-bg-secondary rounded-lg p-3 border border-border-muted">
-            <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Phase I</p>
-            <p className="text-sm text-accent-green font-medium">Regex NER Pipeline</p>
-          </div>
-          <div className="bg-bg-secondary rounded-lg p-3 border border-border-muted">
-            <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Phase II</p>
-            <p className="text-sm text-text-muted font-medium">IndicBERT + Neo4j</p>
-          </div>
-        </div>
       </div>
 
-      {/* Team */}
-      <div className="bg-bg-card border border-border-default rounded-xl p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-text-primary">Project Team</h2>
-        <div className="space-y-3">
-          {team.map((member) => (
+      {/* Roadmap */}
+      <h2
+        style={{
+          fontSize: "11px",
+          color: "#484F58",
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          marginBottom: "16px",
+          fontWeight: "600",
+        }}
+      >
+        Development Roadmap
+      </h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        {phases.map((p) => (
+          <div
+            key={p.phase}
+            style={{
+              background: "#161B22",
+              border: "1px solid #30363D",
+              borderRadius: "6px",
+              padding: "20px",
+              borderLeft:
+                p.status === "ACTIVE"
+                  ? "2px solid #2EA043"
+                  : "2px solid #30363D",
+            }}
+          >
             <div
-              key={member.usn}
-              className="flex items-center justify-between bg-bg-secondary rounded-lg px-4 py-3 border border-border-muted"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "12px",
+              }}
             >
-              <span className="text-text-primary font-medium">{member.name}</span>
-              <span className="font-mono text-xs text-accent-cyan">{member.usn}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: "#00D9FF",
+                    fontWeight: "600",
+                    fontFamily: "JetBrains Mono, monospace",
+                  }}
+                >
+                  {p.phase}
+                </span>
+                <span
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    color: "#E6EDF3",
+                  }}
+                >
+                  {p.title}
+                </span>
+              </div>
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "600",
+                  color: p.statusColor,
+                  padding: "2px 10px",
+                  borderRadius: "20px",
+                  border: `1px solid ${p.statusColor}40`,
+                  background: `${p.statusColor}15`,
+                }}
+              >
+                {p.status}
+              </span>
             </div>
-          ))}
-        </div>
-        <div className="pt-3 border-t border-border-muted">
-          <p className="text-sm text-text-secondary">
-            <span className="text-text-muted">Guide:</span>{" "}
-            <span className="text-text-primary font-medium">Tejas Raghu Pujari</span>
-          </p>
-          <p className="text-sm text-text-secondary mt-1">
-            <span className="text-text-muted">Institution:</span>{" "}
-            <span className="text-text-primary">
-              St Joseph Engineering College, Mangaluru
-            </span>
-          </p>
-          <p className="text-sm text-text-secondary mt-1">
-            <span className="text-text-muted">Programme:</span>{" "}
-            <span className="text-text-primary">BE CSE (Data Science)</span>
-          </p>
-        </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+              }}
+            >
+              {p.items.map((item, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                  }}
+                >
+                  {p.status === "ACTIVE" ? (
+                    <CheckCircle
+                      size={13}
+                      color="#2EA043"
+                      style={{ marginTop: "2px", flexShrink: 0 }}
+                    />
+                  ) : (
+                    <Clock
+                      size={13}
+                      color="#484F58"
+                      style={{ marginTop: "2px", flexShrink: 0 }}
+                    />
+                  )}
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      color: p.status === "ACTIVE" ? "#8B949E" : "#484F58",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    {item}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
 /* ======================================================================
-   CASE DETAIL WRAPPER
-   ====================================================================== */
-function CaseDetailWrapper() {
-  return <CaseDetail />;
-}
-
-/* ======================================================================
-   NAV ITEM
+   SIDEBAR NAV ITEM
    ====================================================================== */
 function SidebarLink({ to, icon: Icon, label, end = false }) {
   return (
     <NavLink
       to={to}
       end={end}
-      className={({ isActive }) =>
-        `group flex items-center gap-3 px-4 py-2.5 rounded-r-lg text-sm font-medium transition-all duration-200 relative ${
-          isActive
-            ? "text-accent-cyan bg-accent-cyan/8 border-l-2 border-accent-cyan"
-            : "text-text-secondary hover:text-text-primary hover:bg-white/[0.03] border-l-2 border-transparent"
-        }`
-      }
+      style={({ isActive }) => ({
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        padding: "8px 16px",
+        fontSize: "13px",
+        fontWeight: "500",
+        color: isActive ? "#00D9FF" : "#8B949E",
+        background: isActive ? "rgba(0,217,255,0.08)" : "transparent",
+        borderLeft: isActive ? "2px solid #00D9FF" : "2px solid transparent",
+        textDecoration: "none",
+        transition: "all 0.15s ease",
+        borderRadius: "0 4px 4px 0",
+        fontFamily: "Inter, sans-serif",
+      })}
+      onMouseEnter={(e) => {
+        if (!e.currentTarget.classList.contains("active")) {
+          e.currentTarget.style.color = "#E6EDF3";
+          e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        const isActive = e.currentTarget.getAttribute("aria-current") === "page";
+        if (!isActive) {
+          e.currentTarget.style.color = "#8B949E";
+          e.currentTarget.style.background = "transparent";
+        }
+      }}
     >
-      {({ isActive }) => (
-        <>
-          {isActive && (
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-accent-cyan rounded-r blur-[3px]" />
-          )}
-          <Icon
-            className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
-              isActive ? "text-accent-cyan" : "text-text-muted group-hover:text-text-secondary"
-            }`}
-          />
-          <span>{label}</span>
-        </>
-      )}
+      <Icon size={16} />
+      <span>{label}</span>
     </NavLink>
   );
 }
@@ -156,37 +300,71 @@ export default function App() {
   const location = useLocation();
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Update clock every second
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Resolve page title from current path
   const getPageTitle = () => {
-    if (location.pathname.startsWith("/cases/")) {
-      return "Case Detail";
-    }
+    if (location.pathname.startsWith("/cases/")) return "Case Detail";
     return PAGE_TITLES[location.pathname] || "CyberIntel";
   };
 
   return (
-    <div className="flex min-h-screen bg-bg-primary">
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        background: "#0D1117",
+        overflow: "hidden",
+      }}
+    >
       {/* ============================================================
-          SIDEBAR — fixed 240px
+          SIDEBAR — fixed 220px, never collapses
           ============================================================ */}
-      <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-bg-secondary border-r border-border-default flex flex-col z-50">
+      <aside
+        style={{
+          width: "220px",
+          minWidth: "220px",
+          background: "#010409",
+          borderRight: "1px solid #21262D",
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          position: "sticky",
+          top: 0,
+          overflow: "hidden",
+        }}
+      >
         {/* Logo */}
-        <div className="px-5 py-6 border-b border-border-muted">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-accent-cyan/20 to-accent-purple/20 border border-accent-cyan/30">
-              <Shield className="w-5 h-5 text-accent-cyan" />
-            </div>
+        <div
+          style={{
+            padding: "20px 16px 16px",
+            borderBottom: "1px solid #21262D",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <Shield size={22} color="#00D9FF" />
             <div>
-              <h1 className="text-[15px] font-bold text-text-primary tracking-tight">
+              <h1
+                style={{
+                  fontSize: "18px",
+                  fontWeight: "700",
+                  color: "#00D9FF",
+                  lineHeight: "1.2",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
                 CyberIntel
               </h1>
-              <p className="text-[10px] text-text-muted uppercase tracking-widest">
+              <p
+                style={{
+                  fontSize: "11px",
+                  color: "#8B949E",
+                  lineHeight: "1.2",
+                }}
+              >
                 Forensic Intelligence
               </p>
             </div>
@@ -194,58 +372,205 @@ export default function App() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-          <p className="px-4 pb-2 text-[10px] font-semibold text-text-muted uppercase tracking-widest">
-            Main
+        <nav
+          style={{
+            flex: 1,
+            padding: "16px 8px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "2px",
+            overflowY: "auto",
+          }}
+        >
+          <p
+            style={{
+              padding: "4px 16px 8px",
+              fontSize: "10px",
+              fontWeight: "600",
+              color: "#484F58",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+            }}
+          >
+            MAIN
           </p>
           <SidebarLink to="/" icon={LayoutDashboard} label="Dashboard" end />
           <SidebarLink to="/new-case" icon={FilePlus} label="New Case" />
           <SidebarLink to="/cases" icon={FolderOpen} label="Cases" />
 
-          <div className="my-4 mx-4 border-t border-border-muted" />
+          <div
+            style={{
+              margin: "12px 16px",
+              borderTop: "1px solid #21262D",
+            }}
+          />
 
-          <p className="px-4 pb-2 text-[10px] font-semibold text-text-muted uppercase tracking-widest">
-            System
+          <p
+            style={{
+              padding: "4px 16px 8px",
+              fontSize: "10px",
+              fontWeight: "600",
+              color: "#484F58",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+            }}
+          >
+            SYSTEM
           </p>
           <SidebarLink to="/about" icon={Info} label="About" />
         </nav>
 
         {/* Bottom phase indicator */}
-        <div className="px-4 py-4 border-t border-border-muted space-y-2">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent-cyan/8 border border-accent-cyan/20">
-            <Zap className="w-3.5 h-3.5 text-accent-cyan" />
-            <span className="text-[11px] font-medium text-accent-cyan">
+        <div
+          style={{
+            marginTop: "auto",
+            padding: "12px 16px 16px",
+            borderTop: "1px solid #21262D",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              marginBottom: "6px",
+            }}
+          >
+            <Zap size={12} color="#00D9FF" />
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: "600",
+                color: "#00D9FF",
+              }}
+            >
               Phase I — Regex NER
             </span>
           </div>
-          <p className="text-[10px] text-text-muted px-1 leading-relaxed">
+          <p
+            style={{
+              fontSize: "11px",
+              color: "#484F58",
+              paddingLeft: "18px",
+            }}
+          >
             Phase II: IndicBERT + Neo4j
           </p>
         </div>
       </aside>
 
       {/* ============================================================
-          MAIN CONTENT
+          MAIN CONTENT AREA
           ============================================================ */}
-      <main className="ml-[240px] flex-1 min-h-screen">
-        {/* Top bar */}
-        <header className="sticky top-0 z-40 h-14 bg-bg-primary/80 backdrop-blur-xl border-b border-border-muted flex items-center justify-between px-8">
-          <h2 className="text-lg font-semibold text-text-primary">{getPageTitle()}</h2>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflowY: "auto",
+          background: "#0D1117",
+          minWidth: 0,
+        }}
+      >
+        {/* TOP BAR */}
+        <header
+          style={{
+            borderBottom: "1px solid #21262D",
+            padding: "12px 24px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "#010409",
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            flexShrink: 0,
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "16px",
+              fontWeight: "600",
+              color: "#E6EDF3",
+            }}
+          >
+            {getPageTitle()}
+          </h2>
 
-          <div className="flex items-center gap-4">
-            {/* System online indicator */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-green/10 border border-accent-green/20">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-green" />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+            }}
+          >
+            {/* System online */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "4px 12px",
+                borderRadius: "20px",
+                background: "rgba(46,160,67,0.1)",
+                border: "1px solid rgba(46,160,67,0.2)",
+              }}
+            >
+              <span
+                style={{
+                  position: "relative",
+                  display: "inline-flex",
+                  width: "8px",
+                  height: "8px",
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: "50%",
+                    background: "#2EA043",
+                    animation: "pulse-dot 2s ease-in-out infinite",
+                  }}
+                />
+                <span
+                  style={{
+                    position: "relative",
+                    display: "inline-flex",
+                    borderRadius: "50%",
+                    width: "8px",
+                    height: "8px",
+                    background: "#2EA043",
+                  }}
+                />
               </span>
-              <span className="text-xs text-accent-green font-medium">System Online</span>
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: "#2EA043",
+                  fontWeight: "500",
+                }}
+              >
+                System Online
+              </span>
             </div>
 
             {/* Clock */}
-            <div className="flex items-center gap-2 text-text-secondary">
-              <Activity className="w-3.5 h-3.5" />
-              <span className="text-xs font-mono">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <Activity size={14} color="#8B949E" />
+              <span
+                style={{
+                  fontSize: "12px",
+                  fontFamily: "JetBrains Mono, monospace",
+                  color: "#8B949E",
+                }}
+              >
                 {currentTime.toLocaleTimeString("en-IN", {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -257,17 +582,17 @@ export default function App() {
           </div>
         </header>
 
-        {/* Page content */}
-        <div className="p-8">
+        {/* PAGE CONTENT */}
+        <main style={{ padding: "24px", flex: 1 }}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/new-case" element={<ComplaintForm />} />
             <Route path="/cases" element={<CaseList />} />
-            <Route path="/cases/:caseId" element={<CaseDetailWrapper />} />
+            <Route path="/cases/:caseId" element={<CaseDetail />} />
             <Route path="/about" element={<About />} />
           </Routes>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

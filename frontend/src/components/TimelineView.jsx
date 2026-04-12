@@ -2,127 +2,200 @@ import React from "react";
 import { Clock, AlertTriangle } from "lucide-react";
 
 /* ======================================================================
-   ENTITY CHIP (inline mini tag)
-   ====================================================================== */
-function EntityChip({ value }) {
-  return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">
-      {value}
-    </span>
-  );
-}
-
-/* ======================================================================
-   TIMELINE EVENT NODE
-   ====================================================================== */
-function TimelineNode({ event, isLast }) {
-  const { timestamp, action_context, entities_referenced, is_uncertain, uncertainty_reason } = event;
-
-  return (
-    <div className="flex gap-4 group">
-      {/* Left — timestamp */}
-      <div className="w-28 flex-shrink-0 text-right pt-1">
-        <p className="text-sm font-mono text-accent-cyan leading-tight">
-          {timestamp}
-        </p>
-      </div>
-
-      {/* Center — line and node */}
-      <div className="flex flex-col items-center flex-shrink-0">
-        {/* Circle node */}
-        <div
-          className={`w-3 h-3 rounded-full border-2 flex-shrink-0 mt-1.5 ${
-            is_uncertain
-              ? "border-accent-orange bg-accent-orange/30"
-              : "border-accent-cyan bg-accent-cyan/30"
-          }`}
-        />
-        {/* Vertical line */}
-        {!isLast && (
-          <div
-            className={`w-px flex-1 min-h-[40px] ${
-              is_uncertain
-                ? "border-l border-dashed border-accent-orange/30"
-                : "bg-border-default"
-            }`}
-          />
-        )}
-      </div>
-
-      {/* Right — content card */}
-      <div
-        className={`flex-1 mb-6 rounded-lg p-4 border transition-colors ${
-          is_uncertain
-            ? "bg-bg-card border-l-2 border-l-accent-orange border-t-border-muted border-r-border-muted border-b-border-muted"
-            : "bg-bg-card border-border-muted hover:border-border-default"
-        }`}
-      >
-        {/* Action context */}
-        <p className="text-sm text-text-primary leading-relaxed">
-          …{action_context}…
-        </p>
-
-        {/* Referenced entities */}
-        {entities_referenced.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {entities_referenced.map((val, idx) => (
-              <EntityChip key={`${val}-${idx}`} value={val} />
-            ))}
-          </div>
-        )}
-
-        {/* Uncertainty badge */}
-        {is_uncertain && uncertainty_reason && (
-          <div className="flex items-center gap-2 mt-3 px-2.5 py-1.5 rounded-md bg-accent-orange/10 border border-accent-orange/20 w-fit">
-            <AlertTriangle className="w-3 h-3 text-accent-orange flex-shrink-0" />
-            <span className="text-[11px] text-accent-orange font-medium">
-              {uncertainty_reason}
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ======================================================================
-   TIMELINE VIEW
+   TIMELINE VIEW — Vertical timeline with dots and cards
    ====================================================================== */
 export default function TimelineView({ timeline }) {
   if (!timeline || timeline.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Clock className="w-8 h-8 text-text-muted mb-3" />
-        <p className="text-sm text-text-secondary">No dated events extracted</p>
-        <p className="text-xs text-text-muted mt-1">
-          The complaint did not contain recognizable date references
+      <div style={{ textAlign: "center", padding: "48px 24px", color: "#484F58" }}>
+        <Clock
+          size={32}
+          style={{ margin: "0 auto 12px", display: "block", opacity: 0.3 }}
+        />
+        <p style={{ fontSize: "14px", color: "#8B949E" }}>
+          No dated events found in this complaint
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-0">
+    <div style={{ position: "relative" }}>
       {/* Legend */}
-      <div className="flex items-center gap-4 mb-6 text-[11px] text-text-muted">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-accent-cyan" />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "16px",
+          marginBottom: "20px",
+          fontSize: "11px",
+          color: "#484F58",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              background: "#00D9FF",
+            }}
+          />
           <span>Confirmed date</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-accent-orange" />
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              background: "#D29922",
+            }}
+          />
           <span>Uncertain / relative</span>
         </div>
       </div>
 
-      {/* Timeline nodes */}
-      {timeline.map((event, idx) => (
-        <TimelineNode
-          key={idx}
-          event={event}
-          isLast={idx === timeline.length - 1}
-        />
-      ))}
+      {/* Vertical line */}
+      <div
+        style={{
+          position: "absolute",
+          left: "119px",
+          top: "56px",
+          bottom: "16px",
+          width: "1px",
+          background: "#30363D",
+        }}
+      />
+
+      {/* Timeline events */}
+      {timeline.map((event, i) => {
+        const isUncertain = event.is_uncertain;
+        const dotColor = isUncertain ? "#D29922" : "#00D9FF";
+
+        return (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              gap: "20px",
+              marginBottom: "20px",
+              alignItems: "flex-start",
+            }}
+          >
+            {/* Timestamp */}
+            <div
+              style={{
+                width: "100px",
+                flexShrink: 0,
+                textAlign: "right",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "JetBrains Mono, monospace",
+                  fontSize: "12px",
+                  color: dotColor,
+                }}
+              >
+                {event.timestamp}
+              </span>
+            </div>
+
+            {/* Dot on line */}
+            <div
+              style={{
+                width: "20px",
+                flexShrink: 0,
+                display: "flex",
+                justifyContent: "center",
+                paddingTop: "2px",
+              }}
+            >
+              <div
+                style={{
+                  width: "10px",
+                  height: "10px",
+                  borderRadius: "50%",
+                  background: dotColor,
+                  border: `2px solid ${dotColor}`,
+                  boxShadow: `0 0 8px ${dotColor}60`,
+                }}
+              />
+            </div>
+
+            {/* Content card */}
+            <div
+              style={{
+                flex: 1,
+                background: "#161B22",
+                border: `1px solid ${isUncertain ? "#D2992240" : "#30363D"}`,
+                borderRadius: "4px",
+                padding: "12px",
+                borderLeft: isUncertain
+                  ? "2px solid #D29922"
+                  : "2px solid #30363D",
+              }}
+            >
+              {isUncertain && event.uncertainty_reason && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    marginBottom: "8px",
+                  }}
+                >
+                  <AlertTriangle size={12} color="#D29922" />
+                  <span style={{ fontSize: "11px", color: "#D29922" }}>
+                    Uncertain — {event.uncertainty_reason}
+                  </span>
+                </div>
+              )}
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#E6EDF3",
+                  lineHeight: "1.5",
+                  margin: 0,
+                }}
+              >
+                {event.action_context}
+              </p>
+
+              {/* Referenced entities */}
+              {event.entities_referenced &&
+                event.entities_referenced.length > 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "6px",
+                      marginTop: "8px",
+                    }}
+                  >
+                    {event.entities_referenced.map((val, idx) => (
+                      <span
+                        key={`${val}-${idx}`}
+                        style={{
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          background: "rgba(0,217,255,0.1)",
+                          border: "1px solid rgba(0,217,255,0.2)",
+                          fontSize: "11px",
+                          fontFamily: "JetBrains Mono, monospace",
+                          color: "#00D9FF",
+                        }}
+                      >
+                        {val}
+                      </span>
+                    ))}
+                  </div>
+                )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

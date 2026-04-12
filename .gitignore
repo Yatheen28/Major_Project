@@ -42,6 +42,7 @@ training_data/
 raw_data/
 logs/
 *.log
+.agents
 
 # Keep sample data
 !data/sample_complaints.json

@@ -2,74 +2,15 @@ import React, { useState } from "react";
 import {
   Lock,
   Copy,
-  Check,
-  Clipboard,
+  CheckCircle,
+  Info,
+  Search,
   ShieldCheck,
   ShieldAlert,
   X,
-  Search,
 } from "lucide-react";
 
 import { verifyHash } from "../api/client";
-
-/* ======================================================================
-   COPY BUTTON (reusable)
-   ====================================================================== */
-function CopyButton({ text }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  return (
-    <button
-      onClick={handleCopy}
-      className="p-1.5 rounded-md hover:bg-white/5 text-text-muted hover:text-accent-cyan transition-colors flex-shrink-0"
-      title="Copy to clipboard"
-    >
-      {copied ? (
-        <Check className="w-3.5 h-3.5 text-accent-green" />
-      ) : (
-        <Clipboard className="w-3.5 h-3.5" />
-      )}
-    </button>
-  );
-}
-
-/* ======================================================================
-   DATA ROW
-   ====================================================================== */
-function DataRow({ label, value, mono = false, small = false, copyable = false }) {
-  return (
-    <div className="flex items-start justify-between gap-4 py-2">
-      <span className="text-xs text-text-muted uppercase tracking-wider flex-shrink-0 w-20 pt-0.5">
-        {label}
-      </span>
-      <div className="flex items-start gap-2 flex-1 min-w-0">
-        <span
-          className={`flex-1 text-text-primary break-all ${
-            mono ? "font-mono" : ""
-          } ${small ? "text-xs leading-relaxed" : "text-sm"}`}
-        >
-          {value}
-        </span>
-        {copyable && <CopyButton text={value} />}
-      </div>
-    </div>
-  );
-}
 
 /* ======================================================================
    VERIFY MODAL
@@ -97,82 +38,188 @@ function VerifyModal({ caseId, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(4px)",
+        }}
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md mx-4 bg-bg-card border border-border-default rounded-xl shadow-2xl">
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: "440px",
+          margin: "0 16px",
+          background: "#161B22",
+          border: "1px solid #30363D",
+          borderRadius: "6px",
+          overflow: "hidden",
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-muted">
-          <div className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-accent-cyan" />
-            <h3 className="text-sm font-semibold text-text-primary">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "16px 20px",
+            borderBottom: "1px solid #21262D",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Search size={16} color="#00D9FF" />
+            <span
+              style={{
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#E6EDF3",
+              }}
+            >
               Verify Evidence Hash
-            </h3>
+            </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md hover:bg-white/5 text-text-muted"
+            style={{
+              background: "none",
+              border: "none",
+              color: "#8B949E",
+              cursor: "pointer",
+              padding: "4px",
+            }}
           >
-            <X className="w-4 h-4" />
+            <X size={16} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-5 space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs text-text-secondary font-medium">
-              Paste the SHA-256 hash to verify
-            </label>
-            <textarea
-              value={hashInput}
-              onChange={(e) => setHashInput(e.target.value)}
-              rows={3}
-              placeholder="E.g. A1B2C3D4E5F6..."
-              className="w-full px-3 py-2.5 rounded-lg bg-bg-secondary border border-border-default text-text-primary text-xs font-mono placeholder:text-text-muted focus:outline-none focus:border-accent-cyan/50 resize-none"
-            />
-          </div>
+        <div style={{ padding: "20px" }}>
+          <label
+            style={{
+              fontSize: "12px",
+              color: "#8B949E",
+              fontWeight: "500",
+              display: "block",
+              marginBottom: "6px",
+            }}
+          >
+            Paste the SHA-256 hash to verify
+          </label>
+          <textarea
+            value={hashInput}
+            onChange={(e) => setHashInput(e.target.value)}
+            rows={3}
+            placeholder="e.g. A1B2C3D4E5F6..."
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              background: "#0D1117",
+              border: "1px solid #30363D",
+              borderRadius: "4px",
+              color: "#E6EDF3",
+              fontSize: "12px",
+              fontFamily: "JetBrains Mono, monospace",
+              outline: "none",
+              resize: "none",
+              boxSizing: "border-box",
+              marginBottom: "12px",
+            }}
+          />
 
           <button
             onClick={handleVerify}
             disabled={verifying || !hashInput.trim()}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-accent-cyan text-bg-primary text-sm font-semibold hover:bg-accent-cyan/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            style={{
+              width: "100%",
+              padding: "10px",
+              background:
+                verifying || !hashInput.trim()
+                  ? "#1C2128"
+                  : "linear-gradient(135deg, #0A4A52, #003D4F)",
+              border: "1px solid #00D9FF",
+              borderRadius: "4px",
+              color: "#00D9FF",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor:
+                verifying || !hashInput.trim() ? "not-allowed" : "pointer",
+              opacity: verifying || !hashInput.trim() ? 0.5 : 1,
+              fontFamily: "Inter, sans-serif",
+            }}
           >
-            {verifying ? "Verifying…" : "Verify Hash"}
+            {verifying ? "Verifying..." : "Verify Hash"}
           </button>
 
           {/* Result */}
           {result && (
             <div
-              className={`flex items-start gap-3 px-4 py-3 rounded-lg border ${
-                result.verified
-                  ? "bg-accent-green/10 border-accent-green/30"
-                  : "bg-accent-red/10 border-accent-red/30"
-              }`}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "10px",
+                padding: "12px",
+                borderRadius: "4px",
+                marginTop: "12px",
+                background: result.verified
+                  ? "rgba(46,160,67,0.1)"
+                  : "rgba(248,81,73,0.1)",
+                border: result.verified
+                  ? "1px solid rgba(46,160,67,0.3)"
+                  : "1px solid rgba(248,81,73,0.3)",
+              }}
             >
               {result.verified ? (
-                <ShieldCheck className="w-5 h-5 text-accent-green flex-shrink-0 mt-0.5" />
+                <ShieldCheck size={18} color="#2EA043" style={{ flexShrink: 0, marginTop: "1px" }} />
               ) : (
-                <ShieldAlert className="w-5 h-5 text-accent-red flex-shrink-0 mt-0.5" />
+                <ShieldAlert size={18} color="#F85149" style={{ flexShrink: 0, marginTop: "1px" }} />
               )}
-              <div className="space-y-1">
+              <div>
                 <p
-                  className={`text-sm font-semibold ${
-                    result.verified ? "text-accent-green" : "text-accent-red"
-                  }`}
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: result.verified ? "#2EA043" : "#F85149",
+                    marginBottom: "6px",
+                  }}
                 >
                   {result.verified
-                    ? "✓ Hash Match — Evidence Intact"
-                    : "✗ Hash Mismatch — Possible Tampering"}
+                    ? "Hash Match — Evidence Intact"
+                    : "Hash Mismatch — Possible Tampering"}
                 </p>
-                <p className="text-[11px] text-text-muted font-mono break-all">
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "#484F58",
+                    fontFamily: "JetBrains Mono, monospace",
+                    wordBreak: "break-all",
+                  }}
+                >
                   Stored: {result.stored_hash}
                 </p>
-                <p className="text-[11px] text-text-muted font-mono break-all">
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "#484F58",
+                    fontFamily: "JetBrains Mono, monospace",
+                    wordBreak: "break-all",
+                  }}
+                >
                   Provided: {result.provided_hash}
                 </p>
               </div>
@@ -180,7 +227,15 @@ function VerifyModal({ caseId, onClose }) {
           )}
 
           {error && (
-            <p className="text-xs text-accent-red">{error}</p>
+            <p
+              style={{
+                fontSize: "12px",
+                color: "#F85149",
+                marginTop: "12px",
+              }}
+            >
+              {error}
+            </p>
           )}
         </div>
       </div>
@@ -189,66 +244,204 @@ function VerifyModal({ caseId, onClose }) {
 }
 
 /* ======================================================================
-   HASH DISPLAY
+   HASH DISPLAY — Evidence Integrity Certificate
    ====================================================================== */
-export default function HashDisplay({ caseId, sha256Hash, submittedAt, submittedBy }) {
+export default function HashDisplay({
+  caseId,
+  sha256Hash,
+  submittedAt,
+  submittedBy,
+}) {
   const [showVerify, setShowVerify] = useState(false);
+  const [copiedField, setCopiedField] = useState(null);
 
   const formattedDate = (() => {
     try {
-      return new Date(submittedAt).toLocaleString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-        timeZone: "UTC",
-      }) + " UTC";
+      return (
+        new Date(submittedAt).toLocaleString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+          timeZone: "UTC",
+        }) + " UTC"
+      );
     } catch {
       return submittedAt;
     }
   })();
 
+  const rows = [
+    { label: "Case ID", value: caseId, mono: false },
+    { label: "SHA-256 Hash", value: sha256Hash, mono: true, long: true },
+    { label: "Ingestion Timestamp (UTC)", value: formattedDate, mono: false },
+    { label: "Submitted By", value: submittedBy, mono: false },
+  ];
+
+  const handleCopy = async (value, label) => {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = value;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+    setCopiedField(label);
+    setTimeout(() => setCopiedField(null), 1500);
+  };
+
   return (
     <>
-      <div className="bg-bg-card border border-border-default rounded-xl p-5 space-y-4">
+      <div
+        style={{
+          background: "#161B22",
+          border: "1px solid #30363D",
+          borderRadius: "6px",
+          padding: "20px",
+          marginBottom: "16px",
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-accent-cyan" />
-            <h3 className="text-sm font-semibold text-text-primary">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "16px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Lock size={16} color="#00D9FF" />
+            <span
+              style={{
+                color: "#E6EDF3",
+                fontWeight: "600",
+                fontSize: "14px",
+              }}
+            >
               Evidence Integrity Certificate
-            </h3>
+            </span>
           </div>
-          <span className="px-2.5 py-1 text-[10px] font-mono font-medium text-accent-cyan bg-accent-cyan/10 border border-accent-cyan/20 rounded-full">
-            BSA §63 Part B
+          <span
+            style={{
+              fontSize: "11px",
+              color: "#00D9FF",
+              border: "1px solid rgba(0,217,255,0.25)",
+              borderRadius: "4px",
+              padding: "2px 8px",
+              fontFamily: "JetBrains Mono, monospace",
+            }}
+          >
+            BSA §63 — Part B
           </span>
         </div>
 
-        <div className="border-t border-border-muted" />
-
         {/* Data rows */}
-        <div className="space-y-0.5">
-          <DataRow label="Case ID" value={caseId} mono copyable />
-          <DataRow label="SHA-256" value={sha256Hash} mono small copyable />
-          <DataRow label="Ingested" value={formattedDate} />
-          <DataRow label="Officer" value={submittedBy} />
-        </div>
-
-        <div className="border-t border-border-muted" />
+        {rows.map((row) => (
+          <div
+            key={row.label}
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "12px",
+              padding: "10px 0",
+              borderBottom: "1px solid #21262D",
+            }}
+          >
+            <span
+              style={{
+                width: "180px",
+                flexShrink: 0,
+                fontSize: "11px",
+                color: "#8B949E",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                paddingTop: "2px",
+              }}
+            >
+              {row.label}
+            </span>
+            <span
+              style={{
+                flex: 1,
+                fontFamily: row.mono
+                  ? "JetBrains Mono, monospace"
+                  : "Inter, sans-serif",
+                fontSize: row.mono ? "11px" : "13px",
+                color: "#E6EDF3",
+                wordBreak: "break-all",
+                lineHeight: "1.6",
+              }}
+            >
+              {row.value}
+            </span>
+            <button
+              onClick={() => handleCopy(row.value, row.label)}
+              style={{
+                background: "none",
+                border: "1px solid #30363D",
+                borderRadius: "4px",
+                padding: "2px 8px",
+                color:
+                  copiedField === row.label ? "#2EA043" : "#8B949E",
+                fontSize: "11px",
+                cursor: "pointer",
+                flexShrink: 0,
+                fontFamily: "Inter, sans-serif",
+                transition: "color 0.15s ease",
+              }}
+            >
+              {copiedField === row.label ? "Copied" : "Copy"}
+            </button>
+          </div>
+        ))}
 
         {/* Footer */}
-        <div className="flex items-center justify-between">
-          <p className="text-[11px] text-text-muted leading-relaxed max-w-[260px]">
-            Recompute hash from original text to verify evidence integrity.
-          </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: "12px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "11px",
+              color: "#484F58",
+            }}
+          >
+            <Info size={11} />
+            <span>
+              Hash computed at ingestion. Recompute to verify chain of custody.
+            </span>
+          </div>
           <button
             onClick={() => setShowVerify(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent-cyan/30 text-accent-cyan text-xs font-medium hover:bg-accent-cyan/10 transition-colors"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 12px",
+              background: "rgba(0,217,255,0.08)",
+              border: "1px solid rgba(0,217,255,0.2)",
+              borderRadius: "4px",
+              color: "#00D9FF",
+              fontSize: "12px",
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+            }}
           >
-            <Search className="w-3 h-3" />
+            <Search size={12} />
             Verify
           </button>
         </div>
@@ -256,7 +449,10 @@ export default function HashDisplay({ caseId, sha256Hash, submittedAt, submitted
 
       {/* Verify modal */}
       {showVerify && (
-        <VerifyModal caseId={caseId} onClose={() => setShowVerify(false)} />
+        <VerifyModal
+          caseId={caseId}
+          onClose={() => setShowVerify(false)}
+        />
       )}
     </>
   );

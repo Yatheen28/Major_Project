@@ -5,138 +5,100 @@ import {
   Cpu,
   Phone,
   CreditCard,
-  Eye,
-  ExternalLink,
-  ShieldCheck,
+  AlertTriangle,
+  Lock,
+  Activity,
   Database,
   Zap,
   Brain,
-  GitBranch,
-  TrendingUp,
-  AlertTriangle,
+  ArrowRight,
+  RefreshCw,
 } from "lucide-react";
 
 import { getStats, getCases } from "../api/client";
 
 /* ======================================================================
-   STAT CARD
+   STAT CARD CONFIGS
    ====================================================================== */
-const CARD_STYLES = [
+const STAT_CARDS = [
   {
-    gradient: "linear-gradient(135deg, #003D4F 0%, #001A22 100%)",
-    glowColor: "rgba(0,217,255,0.12)",
-    borderColor: "rgba(0,217,255,0.25)",
+    key: "total_cases",
+    label: "Total Cases",
+    subtitle: "since session start",
+    icon: FolderOpen,
     accentColor: "#00D9FF",
-    iconBg: "rgba(0,217,255,0.15)",
+    gradient: "linear-gradient(90deg, #00D9FF, transparent)",
+    getValue: (stats) => stats?.total_cases ?? 0,
   },
   {
-    gradient: "linear-gradient(135deg, #2D1B69 0%, #1C1033 100%)",
-    glowColor: "rgba(139,92,246,0.12)",
-    borderColor: "rgba(139,92,246,0.25)",
+    key: "total_entities",
+    label: "Entities Extracted",
+    subtitle: "across all cases",
+    icon: Cpu,
     accentColor: "#8B5CF6",
-    iconBg: "rgba(139,92,246,0.15)",
+    gradient: "linear-gradient(90deg, #8B5CF6, transparent)",
+    getValue: (stats) => stats?.total_entities ?? 0,
   },
   {
-    gradient: "linear-gradient(135deg, #0A2342 0%, #0D1117 100%)",
-    glowColor: "rgba(31,111,235,0.10)",
-    borderColor: "rgba(31,111,235,0.25)",
+    key: "phone_numbers",
+    label: "Phone Numbers",
+    subtitle: "detected",
+    icon: Phone,
     accentColor: "#1F6FEB",
-    iconBg: "rgba(31,111,235,0.15)",
+    gradient: "linear-gradient(90deg, #1F6FEB, transparent)",
+    getValue: (stats) => stats?.by_type?.PHONE_NUMBER ?? 0,
   },
   {
-    gradient: "linear-gradient(135deg, #0B3D1B 0%, #0D1117 100%)",
-    glowColor: "rgba(46,160,67,0.10)",
-    borderColor: "rgba(46,160,67,0.25)",
+    key: "upi_ids",
+    label: "UPI IDs",
+    subtitle: "identified",
+    icon: CreditCard,
     accentColor: "#2EA043",
-    iconBg: "rgba(46,160,67,0.15)",
+    gradient: "linear-gradient(90deg, #2EA043, transparent)",
+    getValue: (stats) => stats?.by_type?.UPI_ID ?? 0,
   },
 ];
 
-function StatCard({ icon: Icon, value, label, styleIdx, loading }) {
-  const s = CARD_STYLES[styleIdx] || CARD_STYLES[0];
-
-  return (
-    <div
-      className="relative rounded-xl p-5 border transition-transform duration-200 hover:scale-[1.02] group overflow-hidden"
-      style={{
-        background: s.gradient,
-        borderColor: s.borderColor,
-        boxShadow: `0 0 30px ${s.glowColor}`,
-      }}
-    >
-      {/* Subtle top-right glow orb */}
-      <div
-        className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-20 blur-2xl pointer-events-none"
-        style={{ background: s.accentColor }}
-      />
-
-      <div className="flex items-start justify-between relative">
-        <div className="space-y-3">
-          {loading ? (
-            <>
-              <div className="h-8 w-16 rounded bg-white/10 animate-pulse" />
-              <div className="h-4 w-24 rounded bg-white/5 animate-pulse" />
-            </>
-          ) : (
-            <>
-              <p className="text-3xl font-bold text-text-primary tabular-nums">{value}</p>
-              <p className="text-sm text-text-secondary">{label}</p>
-            </>
-          )}
-        </div>
-        <div
-          className="flex items-center justify-center w-10 h-10 rounded-lg"
-          style={{ backgroundColor: s.iconBg }}
-        >
-          <Icon className="w-5 h-5" style={{ color: s.accentColor }} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ======================================================================
-   SKELETON ROW
+   SYSTEM STATUS CONFIG
    ====================================================================== */
-function SkeletonRow() {
-  return (
-    <tr className="border-t border-border-muted">
-      {[...Array(5)].map((_, i) => (
-        <td key={i} className="px-4 py-3">
-          <div className="h-4 rounded bg-white/5 animate-pulse" style={{ width: `${50 + i * 15}%` }} />
-        </td>
-      ))}
-    </tr>
-  );
-}
+const STATUS_ITEMS = [
+  {
+    label: "SHA-256 Hashing",
+    status: "Active",
+    color: "#2EA043",
+    icon: Lock,
+  },
+  {
+    label: "BSA Section 63",
+    status: "Compliant",
+    color: "#2EA043",
+    icon: Activity,
+  },
+  {
+    label: "NER Engine",
+    status: "Regex v1.0",
+    color: "#D29922",
+    icon: Zap,
+  },
+];
 
-/* ======================================================================
-   STATUS ITEM
-   ====================================================================== */
-function StatusItem({ icon, label, status, statusColor, active }) {
-  return (
-    <div
-      className={`flex items-center justify-between py-2.5 px-3 rounded-lg transition-colors ${
-        active ? "bg-white/[0.02]" : ""
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <span className="text-base">{icon}</span>
-        <span className="text-sm text-text-primary">{label}</span>
-      </div>
-      <span
-        className="text-xs font-medium px-2.5 py-1 rounded-full border"
-        style={{
-          color: statusColor,
-          backgroundColor: `${statusColor}15`,
-          borderColor: `${statusColor}30`,
-        }}
-      >
-        {status}
-      </span>
-    </div>
-  );
-}
+const PHASE_II_ITEMS = [
+  {
+    label: "IndicBERT NER",
+    status: "Phase II",
+    color: "#484F58",
+    icon: Brain,
+  },
+  {
+    label: "Neo4j Graph DB",
+    status: "Phase II",
+    color: "#484F58",
+    icon: Database,
+  },
+];
+
+const TECH_STACK = ["FastAPI", "React 18", "Vite", "Tailwind", "SHA-256"];
 
 /* ======================================================================
    DASHBOARD
@@ -153,7 +115,10 @@ export default function Dashboard() {
 
     async function fetchData() {
       try {
-        const [statsData, casesData] = await Promise.all([getStats(), getCases()]);
+        const [statsData, casesData] = await Promise.all([
+          getStats(),
+          getCases(),
+        ]);
         if (!cancelled) {
           setStats(statsData);
           setCases(casesData);
@@ -161,7 +126,6 @@ export default function Dashboard() {
       } catch (err) {
         if (!cancelled) {
           setError(err.message);
-          // Set fallback empty data so the UI still renders
           setStats({ total_cases: 0, total_entities: 0, by_type: {} });
           setCases([]);
         }
@@ -179,219 +143,527 @@ export default function Dashboard() {
   const recentCases = cases ? cases.slice(0, 5) : [];
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Error banner */}
       {error && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-accent-orange/10 border border-accent-orange/30">
-          <AlertTriangle className="w-4 h-4 text-accent-orange flex-shrink-0" />
-          <p className="text-sm text-accent-orange">
-            Backend unavailable — showing empty state. Start the API server to see live data.
-          </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "10px 16px",
+            borderRadius: "6px",
+            background: "rgba(210,153,34,0.1)",
+            border: "1px solid rgba(210,153,34,0.3)",
+            marginBottom: "20px",
+          }}
+        >
+          <AlertTriangle size={16} color="#D29922" />
+          <span style={{ fontSize: "13px", color: "#D29922" }}>
+            Backend unavailable — showing empty state. Start the API server to
+            see live data.
+          </span>
         </div>
       )}
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard
-          icon={FolderOpen}
-          value={stats?.total_cases ?? 0}
-          label="Total Cases"
-          styleIdx={0}
-          loading={loading}
-        />
-        <StatCard
-          icon={Cpu}
-          value={stats?.total_entities ?? 0}
-          label="Entities Extracted"
-          styleIdx={1}
-          loading={loading}
-        />
-        <StatCard
-          icon={Phone}
-          value={stats?.by_type?.PHONE_NUMBER ?? 0}
-          label="Phone Numbers"
-          styleIdx={2}
-          loading={loading}
-        />
-        <StatCard
-          icon={CreditCard}
-          value={stats?.by_type?.UPI_ID ?? 0}
-          label="UPI IDs"
-          styleIdx={3}
-          loading={loading}
-        />
+      {/* ============================================================
+          STAT CARDS — 4 columns
+          ============================================================ */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "16px",
+          marginBottom: "24px",
+        }}
+      >
+        {STAT_CARDS.map((card) => (
+          <div
+            key={card.key}
+            style={{
+              background: "#161B22",
+              border: "1px solid #30363D",
+              borderRadius: "6px",
+              padding: "20px",
+              position: "relative",
+              overflow: "hidden",
+              transition: "border-color 0.2s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.borderColor = card.accentColor + "60")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.borderColor = "#30363D")
+            }
+          >
+            {/* Top accent bar */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: "2px",
+                background: card.gradient,
+              }}
+            />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: "12px",
+              }}
+            >
+              <span
+                style={{
+                  color: "#8B949E",
+                  fontSize: "12px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {card.label}
+              </span>
+              <card.icon size={16} color={card.accentColor} />
+            </div>
+            {loading ? (
+              <div
+                style={{
+                  height: "32px",
+                  width: "60px",
+                  borderRadius: "4px",
+                  background: "rgba(255,255,255,0.05)",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  fontSize: "32px",
+                  fontWeight: "700",
+                  color: "#E6EDF3",
+                  fontFamily: "JetBrains Mono, monospace",
+                  marginBottom: "4px",
+                  lineHeight: "1",
+                }}
+              >
+                {card.getValue(stats)}
+              </div>
+            )}
+            <div style={{ fontSize: "11px", color: "#484F58" }}>
+              {card.subtitle}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Bottom grid: recent cases + system status */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Recent cases table */}
-        <div className="xl:col-span-2 bg-bg-card border border-border-default rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border-muted">
-            <div className="flex items-center gap-2">
-              <FolderOpen className="w-4 h-4 text-text-muted" />
-              <h3 className="text-sm font-semibold text-text-primary">Recent Cases</h3>
-            </div>
-            {recentCases.length > 0 && (
-              <button
-                onClick={() => navigate("/cases")}
-                className="text-xs text-accent-cyan hover:text-accent-cyan/80 flex items-center gap-1 transition-colors"
-              >
-                View all <ExternalLink className="w-3 h-3" />
-              </button>
-            )}
-          </div>
-
-          {loading ? (
-            <table className="w-full">
-              <tbody>
-                <SkeletonRow />
-                <SkeletonRow />
-                <SkeletonRow />
-              </tbody>
-            </table>
-          ) : recentCases.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-12 h-12 rounded-xl bg-bg-secondary border border-border-muted flex items-center justify-center mb-4">
-                <FolderOpen className="w-6 h-6 text-text-muted" />
-              </div>
-              <p className="text-sm text-text-secondary mb-1">No cases yet</p>
-              <p className="text-xs text-text-muted">
-                Submit a complaint to begin analysis
-              </p>
-            </div>
-          ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border-muted">
-                  <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wider px-5 py-3">
-                    Case ID
-                  </th>
-                  <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wider px-4 py-3">
-                    Submitted
-                  </th>
-                  <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wider px-4 py-3">
-                    Entities
-                  </th>
-                  <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wider px-4 py-3">
-                    Status
-                  </th>
-                  <th className="text-right text-xs font-medium text-text-muted uppercase tracking-wider px-5 py-3">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentCases.map((c) => {
-                  const totalEntities = Object.values(c.entity_counts || {}).reduce(
-                    (a, b) => a + b,
-                    0
-                  );
-                  return (
-                    <tr
-                      key={c.case_id}
-                      onClick={() => navigate(`/cases/${c.case_id}`)}
-                      className="border-t border-border-muted hover:bg-bg-tertiary cursor-pointer transition-colors"
-                    >
-                      <td className="px-5 py-3">
-                        <span className="font-mono text-sm text-accent-cyan">{c.case_id}</span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-text-secondary">
-                        {new Date(c.submitted_at).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs font-medium text-text-secondary bg-bg-secondary px-2 py-1 rounded-md">
-                          {totalEntities}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-accent-green bg-accent-green/10 border border-accent-green/25 rounded-full">
-                          {c.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-right">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/cases/${c.case_id}`);
-                          }}
-                          className="p-1.5 rounded-md hover:bg-white/5 text-text-muted hover:text-accent-cyan transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+      {/* ============================================================
+          RECENT CASES TABLE
+          ============================================================ */}
+      <div
+        style={{
+          background: "#161B22",
+          border: "1px solid #30363D",
+          borderRadius: "6px",
+          marginBottom: "24px",
+          overflow: "hidden",
+        }}
+      >
+        {/* Table header */}
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: "1px solid #21262D",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ color: "#E6EDF3", fontWeight: "600", fontSize: "14px" }}>
+            Recent Cases
+          </span>
+          <span style={{ color: "#8B949E", fontSize: "12px" }}>
+            {cases ? cases.length : 0} total
+          </span>
         </div>
 
-        {/* System status panel */}
-        <div className="bg-bg-card border border-border-default rounded-xl overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-4 border-b border-border-muted">
-            <ShieldCheck className="w-4 h-4 text-text-muted" />
-            <h3 className="text-sm font-semibold text-text-primary">System Status</h3>
+        {loading ? (
+          <div style={{ padding: "40px 20px", textAlign: "center" }}>
+            <RefreshCw
+              size={20}
+              color="#484F58"
+              style={{ margin: "0 auto 8px", animation: "spin 1s linear infinite" }}
+            />
+            <p style={{ fontSize: "13px", color: "#484F58" }}>Loading cases...</p>
           </div>
-
-          <div className="p-4 space-y-1">
-            <StatusItem
-              icon="🔐"
-              label="SHA-256 Hashing"
-              status="Active"
-              statusColor="#2EA043"
-              active
+        ) : recentCases.length === 0 ? (
+          <div style={{ padding: "48px 20px", textAlign: "center" }}>
+            <FolderOpen
+              size={32}
+              color="#484F58"
+              style={{ margin: "0 auto 12px", display: "block", opacity: 0.4 }}
             />
-            <StatusItem
-              icon="⚖️"
-              label="BSA Section 63"
-              status="Compliant"
-              statusColor="#2EA043"
-              active
-            />
-            <StatusItem
-              icon="⚡"
-              label="NER Engine"
-              status="Regex v1.0"
-              statusColor="#D29922"
-              active
-            />
-
-            <div className="my-3 border-t border-border-muted" />
-
-            <StatusItem
-              icon="🧠"
-              label="IndicBERT NER"
-              status="Phase II"
-              statusColor="#484F58"
-              active={false}
-            />
-            <StatusItem
-              icon="🔗"
-              label="Neo4j Graph DB"
-              status="Phase II"
-              statusColor="#484F58"
-              active={false}
-            />
-          </div>
-
-          {/* Mini tech stack */}
-          <div className="mx-4 mb-4 mt-2 p-3 rounded-lg bg-bg-secondary border border-border-muted">
-            <p className="text-[10px] text-text-muted uppercase tracking-widest mb-2">
-              Active Stack
+            <p style={{ fontSize: "14px", color: "#8B949E", marginBottom: "4px" }}>
+              No cases yet
             </p>
-            <div className="flex flex-wrap gap-1.5">
-              {["FastAPI", "React 18", "Vite", "Tailwind", "SHA-256"].map((tech) => (
-                <span
-                  key={tech}
-                  className="text-[11px] px-2 py-0.5 rounded bg-bg-tertiary text-text-secondary border border-border-muted"
+            <p style={{ fontSize: "12px", color: "#484F58" }}>
+              Submit a complaint to begin analysis
+            </p>
+          </div>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #21262D" }}>
+                {["Case ID", "Submitted", "Entities", "Status", "Action"].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: "10px 20px",
+                        textAlign: "left",
+                        color: "#8B949E",
+                        fontSize: "11px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        fontWeight: "500",
+                      }}
+                    >
+                      {h}
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {recentCases.map((c) => {
+                const totalEntities = Object.values(
+                  c.entity_counts || {}
+                ).reduce((a, b) => a + b, 0);
+                return (
+                  <tr
+                    key={c.case_id}
+                    style={{
+                      borderBottom: "1px solid #21262D",
+                      cursor: "pointer",
+                      transition: "background 0.1s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "#1C2128")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                    onClick={() => navigate(`/cases/${c.case_id}`)}
+                  >
+                    <td
+                      style={{
+                        padding: "12px 20px",
+                        fontFamily: "JetBrains Mono, monospace",
+                        color: "#00D9FF",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {c.case_id}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 20px",
+                        fontSize: "13px",
+                        color: "#8B949E",
+                      }}
+                    >
+                      {new Date(c.submitted_at).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td style={{ padding: "12px 20px" }}>
+                      <span
+                        style={{
+                          fontFamily: "JetBrains Mono, monospace",
+                          fontSize: "13px",
+                          color: "#E6EDF3",
+                        }}
+                      >
+                        {totalEntities}
+                      </span>
+                    </td>
+                    <td style={{ padding: "12px 20px" }}>
+                      <span
+                        style={{
+                          padding: "2px 10px",
+                          background: "rgba(46,160,67,0.15)",
+                          border: "1px solid rgba(46,160,67,0.3)",
+                          borderRadius: "20px",
+                          fontSize: "11px",
+                          color: "#2EA043",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {c.status || "PROCESSED"}
+                      </span>
+                    </td>
+                    <td style={{ padding: "12px 20px" }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/cases/${c.case_id}`);
+                        }}
+                        style={{
+                          padding: "6px 14px",
+                          background: "rgba(0,217,255,0.08)",
+                          border: "1px solid rgba(0,217,255,0.2)",
+                          borderRadius: "4px",
+                          color: "#00D9FF",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                          fontFamily: "Inter, sans-serif",
+                        }}
+                      >
+                        View <ArrowRight size={11} style={{ display: "inline", marginLeft: "2px", verticalAlign: "middle" }} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* ============================================================
+          SYSTEM STATUS
+          ============================================================ */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "16px",
+        }}
+      >
+        {/* Left: Module status */}
+        <div
+          style={{
+            background: "#161B22",
+            border: "1px solid #30363D",
+            borderRadius: "6px",
+            padding: "20px",
+          }}
+        >
+          <h3
+            style={{
+              fontSize: "14px",
+              fontWeight: "600",
+              color: "#E6EDF3",
+              marginBottom: "16px",
+            }}
+          >
+            System Status
+          </h3>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
+          >
+            {STATUS_ITEMS.map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 0",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
                 >
-                  {tech}
+                  <span
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: item.color,
+                      display: "inline-block",
+                    }}
+                  />
+                  <item.icon size={14} color="#8B949E" />
+                  <span style={{ fontSize: "13px", color: "#E6EDF3" }}>
+                    {item.label}
+                  </span>
+                </div>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    color: item.color,
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                    border: `1px solid ${item.color}40`,
+                    background: `${item.color}15`,
+                  }}
+                >
+                  {item.status}
                 </span>
+              </div>
+            ))}
+
+            <div
+              style={{
+                borderTop: "1px solid #21262D",
+                margin: "4px 0",
+              }}
+            />
+
+            {PHASE_II_ITEMS.map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 0",
+                  opacity: 0.6,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: item.color,
+                      display: "inline-block",
+                    }}
+                  />
+                  <item.icon size={14} color="#484F58" />
+                  <span style={{ fontSize: "13px", color: "#484F58" }}>
+                    {item.label}
+                  </span>
+                </div>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    color: item.color,
+                    padding: "2px 10px",
+                    borderRadius: "20px",
+                    border: `1px solid ${item.color}40`,
+                    background: `${item.color}15`,
+                  }}
+                >
+                  {item.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Active stack */}
+        <div
+          style={{
+            background: "#161B22",
+            border: "1px solid #30363D",
+            borderRadius: "6px",
+            padding: "20px",
+          }}
+        >
+          <h3
+            style={{
+              fontSize: "14px",
+              fontWeight: "600",
+              color: "#E6EDF3",
+              marginBottom: "16px",
+            }}
+          >
+            Active Stack
+          </h3>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px",
+            }}
+          >
+            {TECH_STACK.map((tech) => (
+              <span
+                key={tech}
+                style={{
+                  fontSize: "12px",
+                  padding: "6px 14px",
+                  borderRadius: "4px",
+                  background: "#0D1117",
+                  border: "1px solid #30363D",
+                  color: "#8B949E",
+                  fontFamily: "JetBrains Mono, monospace",
+                }}
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
+
+          {/* Architecture info */}
+          <div style={{ marginTop: "20px" }}>
+            <p
+              style={{
+                fontSize: "11px",
+                color: "#484F58",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                marginBottom: "10px",
+                fontWeight: "600",
+              }}
+            >
+              Architecture
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              {[
+                { label: "NER Engine", value: "Compiled Regex (7 types)" },
+                { label: "Evidence Hash", value: "SHA-256 (hashlib)" },
+                { label: "Storage", value: "In-memory (Thread-safe)" },
+                { label: "API", value: "FastAPI + Uvicorn" },
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span style={{ fontSize: "12px", color: "#8B949E" }}>
+                    {row.label}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      color: "#E6EDF3",
+                      fontFamily: "JetBrains Mono, monospace",
+                    }}
+                  >
+                    {row.value}
+                  </span>
+                </div>
               ))}
             </div>
           </div>

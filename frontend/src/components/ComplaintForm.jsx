@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import {
   FilePlus,
-  Loader2,
-  AlertCircle,
+  LoaderCircle,
+  AlertTriangle,
   Lock,
-  Send,
   User,
   FileText,
 } from "lucide-react";
@@ -15,38 +14,7 @@ import TimelineView from "./TimelineView";
 import HashDisplay from "./HashDisplay";
 
 /* ======================================================================
-   TAB BAR
-   ====================================================================== */
-function TabBar({ active, onChange }) {
-  const tabs = [
-    { id: "entities", label: "Entities" },
-    { id: "timeline", label: "Timeline" },
-  ];
-
-  return (
-    <div className="flex border-b border-border-muted">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onChange(tab.id)}
-          className={`px-5 py-2.5 text-sm font-medium transition-colors relative ${
-            active === tab.id
-              ? "text-accent-cyan"
-              : "text-text-muted hover:text-text-secondary"
-          }`}
-        >
-          {tab.label}
-          {active === tab.id && (
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent-cyan rounded-t" />
-          )}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/* ======================================================================
-   COMPLAINT FORM
+   COMPLAINT FORM — Two-column layout
    ====================================================================== */
 export default function ComplaintForm() {
   const [text, setText] = useState("");
@@ -55,6 +23,8 @@ export default function ComplaintForm() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [activeTab, setActiveTab] = useState("entities");
+  const [officerFocused, setOfficerFocused] = useState(false);
+  const [textFocused, setTextFocused] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,7 +44,9 @@ export default function ComplaintForm() {
       );
       setResult(caseData);
     } catch (err) {
-      setError(err.message || "Failed to process complaint. Is the backend running?");
+      setError(
+        err.message || "Failed to process complaint. Is the backend running?"
+      );
     } finally {
       setLoading(false);
     }
@@ -88,168 +60,332 @@ export default function ComplaintForm() {
     setActiveTab("entities");
   };
 
+  const canSubmit = text.trim().length >= 20 && !loading;
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: result ? "1fr 1fr" : "1fr",
+        gap: "24px",
+        alignItems: "start",
+      }}
+    >
       {/* ============================================================
-          LEFT — SUBMISSION PANEL
+          LEFT — FORM PANEL
           ============================================================ */}
-      <div className="space-y-5">
+      <div
+        style={{
+          background: "#161B22",
+          border: "1px solid #30363D",
+          borderRadius: "6px",
+          padding: "24px",
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent-purple/15 border border-accent-purple/30">
-            <FilePlus className="w-5 h-5 text-accent-purple" />
-          </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "24px",
+          }}
+        >
+          <FilePlus size={20} color="#00D9FF" />
           <div>
-            <h2 className="text-lg font-semibold text-text-primary">
+            <h2
+              style={{
+                fontSize: "16px",
+                fontWeight: "600",
+                color: "#E6EDF3",
+              }}
+            >
               New Investigation Case
             </h2>
-            <p className="text-xs text-text-muted">
+            <p style={{ fontSize: "12px", color: "#8B949E" }}>
               Paste a cybercrime complaint for NER analysis
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Officer / badge input */}
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-              <User className="w-3.5 h-3.5" />
+        <form onSubmit={handleSubmit}>
+          {/* Officer input */}
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "12px",
+                fontWeight: "500",
+                color: "#8B949E",
+                marginBottom: "6px",
+              }}
+            >
+              <User size={13} />
               Investigating Officer
             </label>
             <input
               type="text"
               value={submittedBy}
               onChange={(e) => setSubmittedBy(e.target.value)}
+              onFocus={() => setOfficerFocused(true)}
+              onBlur={() => setOfficerFocused(false)}
               placeholder="Name or badge ID (optional)"
-              className="w-full px-4 py-2.5 rounded-lg bg-bg-secondary border border-border-default text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/20 transition-colors"
+              style={{
+                width: "100%",
+                background: "#0D1117",
+                border: `1px solid ${officerFocused ? "#00D9FF" : "#30363D"}`,
+                borderRadius: "4px",
+                padding: "10px 12px",
+                color: "#E6EDF3",
+                fontSize: "14px",
+                outline: "none",
+                fontFamily: "Inter, sans-serif",
+                transition: "border-color 0.15s ease",
+                boxSizing: "border-box",
+              }}
             />
           </div>
 
-          {/* Complaint textarea */}
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-              <FileText className="w-3.5 h-3.5" />
+          {/* Textarea */}
+          <div style={{ marginBottom: "16px" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "12px",
+                fontWeight: "500",
+                color: "#8B949E",
+                marginBottom: "6px",
+              }}
+            >
+              <FileText size={13} />
               Complaint Text
             </label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              rows={12}
-              placeholder={`Paste the cybercrime complaint here...\n\nExample: "Mujhe 15/03/2024 ko ek call aaya number 9876543210 se. Unhone bola aapka KYC expire ho gaya hai aur mujhse UPI se ₹25,000 transfer karwa liye..."`}
-              className="w-full px-4 py-3 rounded-lg bg-bg-secondary border border-border-default text-text-primary text-sm leading-relaxed placeholder:text-text-muted/60 focus:outline-none focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/20 transition-colors resize-none font-sans"
+              onFocus={() => setTextFocused(true)}
+              onBlur={() => setTextFocused(false)}
+              placeholder={'Paste the cybercrime complaint here...\n\nExample: "Mujhe 15/03/2024 ko ek call aaya number 9876543210 se. Unhone bola aapka KYC expire ho gaya hai..."'}
+              style={{
+                width: "100%",
+                minHeight: "300px",
+                background: "#0D1117",
+                border: `1px solid ${textFocused ? "#00D9FF" : "#30363D"}`,
+                borderRadius: "4px",
+                padding: "12px",
+                color: "#E6EDF3",
+                fontSize: "14px",
+                fontFamily: "Inter, sans-serif",
+                resize: "vertical",
+                outline: "none",
+                lineHeight: "1.6",
+                transition: "border-color 0.15s ease",
+                boxSizing: "border-box",
+              }}
             />
             {/* Character count */}
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] text-text-muted">
-                {text.length < 20 && text.length > 0 && (
-                  <span className="text-accent-orange">
-                    Minimum 20 characters required
-                  </span>
-                )}
-              </p>
-              <p
-                className={`text-[11px] font-mono ${
-                  text.length >= 20 ? "text-accent-green" : "text-text-muted"
-                }`}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "6px",
+              }}
+            >
+              <span style={{ fontSize: "11px", color: "#D29922" }}>
+                {text.length > 0 && text.length < 20
+                  ? "Minimum 20 characters required"
+                  : ""}
+              </span>
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: text.length >= 20 ? "#2EA043" : "#8B949E",
+                  fontFamily: "JetBrains Mono, monospace",
+                }}
               >
                 {text.length} chars
-              </p>
+              </span>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={loading || text.trim().length < 20}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-accent-cyan text-bg-primary text-sm font-semibold hover:bg-accent-cyan/90 focus:outline-none focus:ring-2 focus:ring-accent-cyan/40 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          {/* Error banner */}
+          {error && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 12px",
+                background: "rgba(248,81,73,0.1)",
+                border: "1px solid rgba(248,81,73,0.3)",
+                borderRadius: "4px",
+                marginBottom: "16px",
+              }}
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Analyzing…
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  Analyze Complaint
-                </>
-              )}
-            </button>
+              <AlertTriangle size={14} color="#F85149" />
+              <span style={{ fontSize: "13px", color: "#F85149" }}>
+                {error}
+              </span>
+            </div>
+          )}
 
-            {result && (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="px-4 py-2.5 rounded-lg border border-border-default text-text-secondary text-sm hover:bg-white/[0.03] transition-colors"
-              >
-                Clear & New
-              </button>
+          {/* Submit button */}
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            style={{
+              width: "100%",
+              padding: "12px",
+              background: loading
+                ? "#1C2128"
+                : "linear-gradient(135deg, #0A4A52, #003D4F)",
+              border: "1px solid #00D9FF",
+              borderRadius: "4px",
+              color: "#00D9FF",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: canSubmit ? "pointer" : "not-allowed",
+              opacity: canSubmit ? 1 : 0.5,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              letterSpacing: "0.02em",
+              fontFamily: "Inter, sans-serif",
+              transition: "opacity 0.15s ease",
+            }}
+          >
+            {loading ? (
+              <>
+                <LoaderCircle
+                  size={16}
+                  style={{ animation: "spin 1s linear infinite" }}
+                />
+                Analyzing...
+              </>
+            ) : (
+              "Analyze Complaint \u2192"
             )}
-          </div>
+          </button>
+
+          {/* Clear button */}
+          {result && (
+            <button
+              type="button"
+              onClick={handleClear}
+              style={{
+                width: "100%",
+                padding: "10px",
+                background: "transparent",
+                border: "1px solid #30363D",
+                borderRadius: "4px",
+                color: "#8B949E",
+                fontSize: "13px",
+                cursor: "pointer",
+                marginTop: "8px",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              Clear & New Case
+            </button>
+          )}
         </form>
 
-        {/* Error banner */}
-        {error && (
-          <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-accent-red/10 border border-accent-red/30">
-            <AlertCircle className="w-4 h-4 text-accent-red mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-accent-red">{error}</p>
-          </div>
-        )}
-
-        {/* BSA compliance callout */}
-        <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-accent-cyan/5 border border-accent-cyan/15">
-          <Lock className="w-4 h-4 text-accent-cyan mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              SHA-256 cryptographic hash is computed at ingestion.{" "}
-              <span className="text-accent-cyan font-medium">
-                BSA 2023 Section 63 Part B
-              </span>{" "}
-              compliant evidence integrity.
-            </p>
-          </div>
+        {/* BSA info strip */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: "16px",
+            padding: "10px 12px",
+            background: "rgba(0,217,255,0.05)",
+            border: "1px solid rgba(0,217,255,0.2)",
+            borderRadius: "4px",
+          }}
+        >
+          <Lock size={12} color="#00D9FF" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: "12px", color: "#8B949E" }}>
+            SHA-256 hash computed at ingestion — BSA 2023 Section 63 Part B
+            compliant
+          </span>
         </div>
       </div>
 
       {/* ============================================================
-          RIGHT — RESULTS PANEL
+          RIGHT — RESULTS PANEL (only when result exists)
           ============================================================ */}
-      <div
-        className={`space-y-5 transition-all duration-500 ${
-          result
-            ? "opacity-100 translate-x-0"
-            : "opacity-0 translate-x-4 pointer-events-none"
-        }`}
-      >
-        {result && (
-          <>
-            {/* Hash certificate */}
-            <HashDisplay
-              caseId={result.case_id}
-              sha256Hash={result.sha256_hash}
-              submittedAt={result.submitted_at}
-              submittedBy={result.submitted_by}
-            />
+      {result && (
+        <div>
+          {/* Hash certificate */}
+          <HashDisplay
+            caseId={result.case_id}
+            sha256Hash={result.sha256_hash}
+            submittedAt={result.submitted_at}
+            submittedBy={result.submitted_by}
+          />
 
-            {/* Entity / Timeline tabs */}
-            <div className="bg-bg-card border border-border-default rounded-xl overflow-hidden">
-              <TabBar active={activeTab} onChange={setActiveTab} />
-
-              <div className="p-5">
-                {activeTab === "entities" ? (
-                  <EntityDisplay
-                    entities={result.entities}
-                    entityCounts={result.entity_counts}
-                  />
-                ) : (
-                  <TimelineView timeline={result.timeline} />
-                )}
-              </div>
+          {/* Entity / Timeline tabs */}
+          <div
+            style={{
+              background: "#161B22",
+              border: "1px solid #30363D",
+              borderRadius: "6px",
+              overflow: "hidden",
+              marginTop: "16px",
+            }}
+          >
+            {/* Tab bar */}
+            <div
+              style={{
+                display: "flex",
+                borderBottom: "1px solid #21262D",
+              }}
+            >
+              {["entities", "timeline"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  style={{
+                    padding: "10px 20px",
+                    fontSize: "13px",
+                    fontWeight: "500",
+                    color: activeTab === tab ? "#00D9FF" : "#484F58",
+                    background: "transparent",
+                    border: "none",
+                    borderBottom:
+                      activeTab === tab
+                        ? "2px solid #00D9FF"
+                        : "2px solid transparent",
+                    cursor: "pointer",
+                    textTransform: "capitalize",
+                    fontFamily: "Inter, sans-serif",
+                    transition: "color 0.15s ease",
+                  }}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
-          </>
-        )}
-      </div>
+
+            {/* Tab content */}
+            <div style={{ padding: "20px" }}>
+              {activeTab === "entities" ? (
+                <EntityDisplay
+                  entities={result.entities}
+                  entityCounts={result.entity_counts}
+                />
+              ) : (
+                <TimelineView timeline={result.timeline} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

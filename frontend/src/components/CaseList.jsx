@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FolderOpen, Eye, Loader2, AlertTriangle } from "lucide-react";
+import {
+  FolderOpen,
+  AlertTriangle,
+  RefreshCw,
+  ArrowRight,
+} from "lucide-react";
 
 import { getCases } from "../api/client";
 
 /* ======================================================================
-   ENTITY TYPE COLORS (mini version for inline pills)
+   ENTITY TYPE COLORS & LABELS
    ====================================================================== */
 const TYPE_COLORS = {
   PHONE_NUMBER: { bg: "rgba(31,111,235,0.15)", border: "rgba(31,111,235,0.35)", text: "#1F6FEB" },
@@ -13,7 +18,7 @@ const TYPE_COLORS = {
   URL: { bg: "rgba(210,153,34,0.15)", border: "rgba(210,153,34,0.35)", text: "#D29922" },
   TRANSACTION_ID: { bg: "rgba(0,217,255,0.1)", border: "rgba(0,217,255,0.25)", text: "#00D9FF" },
   AMOUNT: { bg: "rgba(46,160,67,0.15)", border: "rgba(46,160,67,0.35)", text: "#2EA043" },
-  DATE: { bg: "rgba(0,217,255,0.08)", border: "rgba(0,217,255,0.18)", text: "#7ECFDD" },
+  DATE: { bg: "rgba(0,217,255,0.08)", border: "rgba(0,217,255,0.18)", text: "#00D9FF" },
   BANK_ACCOUNT: { bg: "rgba(248,81,73,0.15)", border: "rgba(248,81,73,0.35)", text: "#F85149" },
 };
 
@@ -54,129 +59,257 @@ export default function CaseList() {
     }
 
     fetchCases();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-6 h-6 text-accent-cyan animate-spin" />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "96px 0",
+        }}
+      >
+        <RefreshCw
+          size={24}
+          color="#00D9FF"
+          style={{ animation: "spin 1s linear infinite" }}
+        />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-text-primary">Investigation Cases</h1>
-          <span className="px-2.5 py-1 text-xs font-mono font-medium text-accent-cyan bg-accent-cyan/10 border border-accent-cyan/20 rounded-full">
-            {cases?.length ?? 0}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "20px",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "20px",
+            fontWeight: "600",
+            color: "#E6EDF3",
+          }}
+        >
+          Investigation Cases
+        </h1>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "6px 12px",
+            background: "#161B22",
+            border: "1px solid #30363D",
+            borderRadius: "4px",
+          }}
+        >
+          <span style={{ fontSize: "13px", color: "#8B949E" }}>
+            {cases ? cases.length : 0} cases
           </span>
         </div>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-accent-orange/10 border border-accent-orange/30">
-          <AlertTriangle className="w-4 h-4 text-accent-orange flex-shrink-0" />
-          <p className="text-sm text-accent-orange">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "10px 16px",
+            borderRadius: "6px",
+            background: "rgba(210,153,34,0.1)",
+            border: "1px solid rgba(210,153,34,0.3)",
+            marginBottom: "16px",
+          }}
+        >
+          <AlertTriangle size={16} color="#D29922" />
+          <span style={{ fontSize: "13px", color: "#D29922" }}>
             Backend unavailable — start the API server to load cases.
-          </p>
+          </span>
         </div>
       )}
 
-      {/* Empty state */}
-      {cases && cases.length === 0 && !error ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-bg-card border border-border-default flex items-center justify-center mb-5">
-            <FolderOpen className="w-8 h-8 text-text-muted" />
-          </div>
-          <h3 className="text-base font-semibold text-text-primary mb-1">No cases found</h3>
-          <p className="text-sm text-text-muted max-w-sm">
-            Submit a cybercrime complaint through the &ldquo;New Case&rdquo; page to begin
-            forensic analysis.
+      {/* Empty state or table */}
+      {cases && cases.length === 0 ? (
+        <div
+          style={{
+            background: "#161B22",
+            border: "1px solid #30363D",
+            borderRadius: "6px",
+            padding: "64px 24px",
+            textAlign: "center",
+          }}
+        >
+          <FolderOpen
+            size={40}
+            color="#484F58"
+            style={{ margin: "0 auto 16px", display: "block", opacity: 0.4 }}
+          />
+          <p
+            style={{
+              color: "#8B949E",
+              fontSize: "15px",
+              marginBottom: "8px",
+            }}
+          >
+            No cases submitted yet
           </p>
+          <p
+            style={{
+              color: "#484F58",
+              fontSize: "13px",
+              marginBottom: "20px",
+            }}
+          >
+            Submit a complaint through New Case to begin forensic analysis
+          </p>
+          <button
+            onClick={() => navigate("/new-case")}
+            style={{
+              padding: "8px 20px",
+              background: "rgba(0,217,255,0.1)",
+              border: "1px solid rgba(0,217,255,0.25)",
+              borderRadius: "4px",
+              color: "#00D9FF",
+              fontSize: "13px",
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            Submit First Case <ArrowRight size={12} style={{ display: "inline", verticalAlign: "middle", marginLeft: "2px" }} />
+          </button>
         </div>
       ) : (
-        /* Table */
-        <div className="bg-bg-card border border-border-default rounded-xl overflow-hidden">
-          <table className="w-full">
+        <div
+          style={{
+            background: "#161B22",
+            border: "1px solid #30363D",
+            borderRadius: "6px",
+            overflow: "hidden",
+          }}
+        >
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr className="border-b border-border-muted">
-                <th className="text-left text-[11px] font-medium text-text-muted uppercase tracking-wider px-5 py-3">
-                  Case ID
-                </th>
-                <th className="text-left text-[11px] font-medium text-text-muted uppercase tracking-wider px-4 py-3">
-                  Submitted
-                </th>
-                <th className="text-left text-[11px] font-medium text-text-muted uppercase tracking-wider px-4 py-3">
-                  Entities
-                </th>
-                <th className="text-left text-[11px] font-medium text-text-muted uppercase tracking-wider px-4 py-3">
-                  Types
-                </th>
-                <th className="text-left text-[11px] font-medium text-text-muted uppercase tracking-wider px-4 py-3">
-                  Status
-                </th>
-                <th className="text-right text-[11px] font-medium text-text-muted uppercase tracking-wider px-5 py-3">
-                  Actions
-                </th>
+              <tr style={{ background: "#0D1117" }}>
+                {[
+                  "Case ID",
+                  "Submitted",
+                  "Officer",
+                  "Entities",
+                  "Top Types",
+                  "Status",
+                  "Action",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      padding: "12px 20px",
+                      textAlign: "left",
+                      color: "#8B949E",
+                      fontSize: "11px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      fontWeight: "500",
+                      borderBottom: "1px solid #30363D",
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {(cases || []).map((c) => {
-                const totalEntities = Object.values(c.entity_counts || {}).reduce(
-                  (a, b) => a + b,
-                  0
-                );
-                // Get top 3 entity types
+                const totalEntities = Object.values(
+                  c.entity_counts || {}
+                ).reduce((a, b) => a + b, 0);
+
                 const topTypes = Object.entries(c.entity_counts || {})
                   .sort(([, a], [, b]) => b - a)
                   .slice(0, 3);
-
-                const formattedDate = (() => {
-                  try {
-                    return new Date(c.submitted_at).toLocaleDateString("en-IN", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    }) +
-                      " " +
-                      new Date(c.submitted_at).toLocaleTimeString("en-IN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                        timeZone: "UTC",
-                      }) +
-                      " UTC";
-                  } catch {
-                    return c.submitted_at;
-                  }
-                })();
 
                 return (
                   <tr
                     key={c.case_id}
                     onClick={() => navigate(`/cases/${c.case_id}`)}
-                    className="border-t border-border-muted hover:bg-bg-tertiary cursor-pointer transition-colors group"
+                    style={{
+                      borderBottom: "1px solid #21262D",
+                      cursor: "pointer",
+                      transition: "background 0.1s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "#1C2128")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
                   >
-                    <td className="px-5 py-3.5">
-                      <span className="font-mono text-sm text-accent-cyan group-hover:underline underline-offset-2">
-                        {c.case_id}
-                      </span>
+                    <td
+                      style={{
+                        padding: "14px 20px",
+                        fontFamily: "JetBrains Mono, monospace",
+                        fontSize: "13px",
+                        color: "#00D9FF",
+                      }}
+                    >
+                      {c.case_id}
                     </td>
-                    <td className="px-4 py-3.5 text-sm text-text-secondary">
-                      {formattedDate}
+                    <td
+                      style={{
+                        padding: "14px 20px",
+                        fontSize: "13px",
+                        color: "#8B949E",
+                      }}
+                    >
+                      {new Date(c.submitted_at).toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })}
                     </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs font-medium text-text-secondary bg-bg-secondary px-2 py-1 rounded-md">
+                    <td
+                      style={{
+                        padding: "14px 20px",
+                        fontSize: "13px",
+                        color: "#8B949E",
+                      }}
+                    >
+                      {c.submitted_by || "investigator"}
+                    </td>
+                    <td style={{ padding: "14px 20px" }}>
+                      <span
+                        style={{
+                          fontFamily: "JetBrains Mono, monospace",
+                          fontSize: "13px",
+                          color: "#E6EDF3",
+                        }}
+                      >
                         {totalEntities}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex flex-wrap gap-1">
+                    <td style={{ padding: "14px 20px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "4px",
+                        }}
+                      >
                         {topTypes.map(([type]) => {
                           const color = TYPE_COLORS[type] || {
                             bg: "rgba(255,255,255,0.05)",
@@ -186,10 +319,13 @@ export default function CaseList() {
                           return (
                             <span
                               key={type}
-                              className="text-[10px] font-medium px-1.5 py-0.5 rounded border"
                               style={{
-                                backgroundColor: color.bg,
-                                borderColor: color.border,
+                                fontSize: "10px",
+                                fontWeight: "500",
+                                padding: "1px 8px",
+                                borderRadius: "4px",
+                                border: `1px solid ${color.border}`,
+                                background: color.bg,
                                 color: color.text,
                               }}
                             >
@@ -199,20 +335,39 @@ export default function CaseList() {
                         })}
                       </div>
                     </td>
-                    <td className="px-4 py-3.5">
-                      <span className="inline-flex items-center px-2.5 py-1 text-[11px] font-medium text-accent-green bg-accent-green/10 border border-accent-green/25 rounded-full">
-                        {c.status}
+                    <td style={{ padding: "14px 20px" }}>
+                      <span
+                        style={{
+                          padding: "2px 10px",
+                          background: "rgba(46,160,67,0.15)",
+                          border: "1px solid rgba(46,160,67,0.3)",
+                          borderRadius: "20px",
+                          fontSize: "11px",
+                          color: "#2EA043",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {c.status || "PROCESSED"}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-right">
+                    <td style={{ padding: "14px 20px" }}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/cases/${c.case_id}`);
                         }}
-                        className="p-1.5 rounded-md hover:bg-white/5 text-text-muted hover:text-accent-cyan transition-colors"
+                        style={{
+                          padding: "6px 14px",
+                          background: "rgba(0,217,255,0.08)",
+                          border: "1px solid rgba(0,217,255,0.2)",
+                          borderRadius: "4px",
+                          color: "#00D9FF",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                          fontFamily: "Inter, sans-serif",
+                        }}
                       >
-                        <Eye className="w-4 h-4" />
+                        View <ArrowRight size={11} style={{ display: "inline", verticalAlign: "middle", marginLeft: "2px" }} />
                       </button>
                     </td>
                   </tr>
