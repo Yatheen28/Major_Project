@@ -299,9 +299,23 @@ function SidebarLink({ to, icon: Icon, label, end = false }) {
 export default function App() {
   const location = useLocation();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [sessionStats, setSessionStats] = React.useState({ total_cases: 0, total_entities: 0 });
 
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/stats');
+        const data = await res.json();
+        setSessionStats(data);
+      } catch {}
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -420,42 +434,23 @@ export default function App() {
           <SidebarLink to="/about" icon={Info} label="About" />
         </nav>
 
-        {/* Bottom phase indicator */}
-        <div
-          style={{
-            marginTop: "auto",
-            padding: "12px 16px 16px",
-            borderTop: "1px solid #21262D",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              marginBottom: "6px",
-            }}
-          >
-            <Zap size={12} color="#00D9FF" />
-            <span
-              style={{
-                fontSize: "11px",
-                fontWeight: "600",
-                color: "#00D9FF",
-              }}
-            >
-              Phase I — Regex NER
-            </span>
+        {/* Bottom session stats */}
+        <div style={{marginTop:'auto', padding:'16px', borderTop:'1px solid #21262D'}}>
+          <div style={{fontSize:'10px', color:'#484F58', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'10px'}}>Session</div>
+          <div style={{display:'flex', justifyContent:'space-between', marginBottom:'6px'}}>
+            <span style={{fontSize:'12px', color:'#8B949E'}}>Cases processed</span>
+            <span style={{fontSize:'12px', color:'#00D9FF', fontFamily:'JetBrains Mono, monospace', fontWeight:'600'}}>{sessionStats.total_cases}</span>
           </div>
-          <p
-            style={{
-              fontSize: "11px",
-              color: "#484F58",
-              paddingLeft: "18px",
-            }}
-          >
-            Phase II: IndicBERT + Neo4j
-          </p>
+          <div style={{display:'flex', justifyContent:'space-between', marginBottom:'12px'}}>
+            <span style={{fontSize:'12px', color:'#8B949E'}}>Entities extracted</span>
+            <span style={{fontSize:'12px', color:'#8B5CF6', fontFamily:'JetBrains Mono, monospace', fontWeight:'600'}}>{sessionStats.total_entities}</span>
+          </div>
+          <div style={{height:'1px', background:'#21262D', marginBottom:'10px'}} />
+          <div style={{fontSize:'10px', color:'#484F58', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'6px'}}>NER Engine</div>
+          <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+            <div style={{width:'6px', height:'6px', borderRadius:'50%', background:'#2EA043'}} />
+            <span style={{fontSize:'12px', color:'#8B949E'}}>Regex Pipeline — Active</span>
+          </div>
         </div>
       </aside>
 

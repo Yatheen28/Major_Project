@@ -6,11 +6,6 @@ import {
   Phone,
   CreditCard,
   AlertTriangle,
-  Lock,
-  Activity,
-  Database,
-  Zap,
-  Brain,
   ArrowRight,
   RefreshCw,
 } from "lucide-react";
@@ -60,45 +55,27 @@ const STAT_CARDS = [
 ];
 
 /* ======================================================================
-   SYSTEM STATUS CONFIG
+   ENTITY DISTRIBUTION CONFIG
    ====================================================================== */
-const STATUS_ITEMS = [
-  {
-    label: "SHA-256 Hashing",
-    status: "Active",
-    color: "#2EA043",
-    icon: Lock,
-  },
-  {
-    label: "BSA Section 63",
-    status: "Compliant",
-    color: "#2EA043",
-    icon: Activity,
-  },
-  {
-    label: "NER Engine",
-    status: "Regex v1.0",
-    color: "#D29922",
-    icon: Zap,
-  },
-];
+const ENTITY_COLORS = {
+  PHONE_NUMBER: '#1F6FEB',
+  UPI_ID: '#8B5CF6',
+  URL: '#D29922',
+  TRANSACTION_ID: '#F0883E',
+  AMOUNT: '#2EA043',
+  DATE: '#00D9FF',
+  BANK_ACCOUNT: '#F85149',
+};
 
-const PHASE_II_ITEMS = [
-  {
-    label: "IndicBERT NER",
-    status: "Phase II",
-    color: "#484F58",
-    icon: Brain,
-  },
-  {
-    label: "Neo4j Graph DB",
-    status: "Phase II",
-    color: "#484F58",
-    icon: Database,
-  },
-];
-
-const TECH_STACK = ["FastAPI", "React 18", "Vite", "Tailwind", "SHA-256"];
+const ENTITY_LABELS = {
+  PHONE_NUMBER: 'Phone Numbers',
+  UPI_ID: 'UPI IDs',
+  URL: 'URLs',
+  TRANSACTION_ID: 'Transaction IDs',
+  AMOUNT: 'Amounts',
+  DATE: 'Dates',
+  BANK_ACCOUNT: 'Bank Accounts',
+};
 
 /* ======================================================================
    DASHBOARD
@@ -109,6 +86,7 @@ export default function Dashboard() {
   const [cases, setCases] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [entityStats, setEntityStats] = useState({});
 
   useEffect(() => {
     let cancelled = false;
@@ -122,12 +100,14 @@ export default function Dashboard() {
         if (!cancelled) {
           setStats(statsData);
           setCases(casesData);
+          setEntityStats(statsData.by_type || {});
         }
       } catch (err) {
         if (!cancelled) {
           setError(err.message);
           setStats({ total_cases: 0, total_entities: 0, by_type: {} });
           setCases([]);
+          setEntityStats({});
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -433,237 +413,69 @@ export default function Dashboard() {
       </div>
 
       {/* ============================================================
-          SYSTEM STATUS
+          ENTITY DISTRIBUTION + INVESTIGATION COVERAGE
           ============================================================ */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "16px",
-        }}
-      >
-        {/* Left: Module status */}
-        <div
-          style={{
-            background: "#161B22",
-            border: "1px solid #30363D",
-            borderRadius: "6px",
-            padding: "20px",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "14px",
-              fontWeight: "600",
-              color: "#E6EDF3",
-              marginBottom: "16px",
-            }}
-          >
-            System Status
-          </h3>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}
-          >
-            {STATUS_ITEMS.map((item) => (
-              <div
-                key={item.label}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "8px 0",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      background: item.color,
-                      display: "inline-block",
-                    }}
-                  />
-                  <item.icon size={14} color="#8B949E" />
-                  <span style={{ fontSize: "13px", color: "#E6EDF3" }}>
-                    {item.label}
-                  </span>
-                </div>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: "600",
-                    color: item.color,
-                    padding: "2px 10px",
-                    borderRadius: "20px",
-                    border: `1px solid ${item.color}40`,
-                    background: `${item.color}15`,
-                  }}
-                >
-                  {item.status}
-                </span>
-              </div>
-            ))}
-
-            <div
-              style={{
-                borderTop: "1px solid #21262D",
-                margin: "4px 0",
-              }}
-            />
-
-            {PHASE_II_ITEMS.map((item) => (
-              <div
-                key={item.label}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "8px 0",
-                  opacity: 0.6,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      background: item.color,
-                      display: "inline-block",
-                    }}
-                  />
-                  <item.icon size={14} color="#484F58" />
-                  <span style={{ fontSize: "13px", color: "#484F58" }}>
-                    {item.label}
-                  </span>
-                </div>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: "600",
-                    color: item.color,
-                    padding: "2px 10px",
-                    borderRadius: "20px",
-                    border: `1px solid ${item.color}40`,
-                    background: `${item.color}15`,
-                  }}
-                >
-                  {item.status}
-                </span>
-              </div>
-            ))}
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginTop:'16px'}}>
+        {/* Card 1 — Entity Distribution */}
+        <div style={{background:'#161B22', border:'1px solid #30363D', borderRadius:'6px', padding:'20px'}}>
+          <div style={{marginBottom:'16px'}}>
+            <span style={{color:'#E6EDF3', fontWeight:'600', fontSize:'14px'}}>Entity Distribution</span>
+            <span style={{display:'block', color:'#8B949E', fontSize:'12px', marginTop:'2px'}}>Across all processed cases</span>
           </div>
+          {Object.keys(entityStats).length === 0 ? (
+            <div style={{color:'#484F58', fontSize:'13px', textAlign:'center', padding:'24px 0'}}>No cases processed yet</div>
+          ) : (
+            <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
+              {Object.entries(ENTITY_LABELS).map(([type, label]) => {
+                const count = entityStats[type] || 0;
+                const maxCount = Math.max(...Object.values(entityStats), 1);
+                const pct = Math.round((count / maxCount) * 100);
+                return (
+                  <div key={type}>
+                    <div style={{display:'flex', justifyContent:'space-between', marginBottom:'4px'}}>
+                      <span style={{fontSize:'12px', color:'#8B949E'}}>{label}</span>
+                      <span style={{fontSize:'12px', color: ENTITY_COLORS[type], fontFamily:'JetBrains Mono, monospace', fontWeight:'600'}}>{count}</span>
+                    </div>
+                    <div style={{height:'4px', background:'#21262D', borderRadius:'2px', overflow:'hidden'}}>
+                      <div style={{height:'100%', width:`${pct}%`, background: ENTITY_COLORS[type], borderRadius:'2px', transition:'width 0.6s ease', opacity: count === 0 ? 0.2 : 1}} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Right: Active stack */}
-        <div
-          style={{
-            background: "#161B22",
-            border: "1px solid #30363D",
-            borderRadius: "6px",
-            padding: "20px",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "14px",
-              fontWeight: "600",
-              color: "#E6EDF3",
-              marginBottom: "16px",
-            }}
-          >
-            Active Stack
-          </h3>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "8px",
-            }}
-          >
-            {TECH_STACK.map((tech) => (
-              <span
-                key={tech}
-                style={{
-                  fontSize: "12px",
-                  padding: "6px 14px",
-                  borderRadius: "4px",
-                  background: "#0D1117",
-                  border: "1px solid #30363D",
-                  color: "#8B949E",
-                  fontFamily: "JetBrains Mono, monospace",
-                }}
-              >
-                {tech}
-              </span>
-            ))}
+        {/* Card 2 — Investigation Coverage */}
+        <div style={{background:'#161B22', border:'1px solid #30363D', borderRadius:'6px', padding:'20px'}}>
+          <div style={{marginBottom:'16px'}}>
+            <span style={{color:'#E6EDF3', fontWeight:'600', fontSize:'14px'}}>Investigation Coverage</span>
+            <span style={{display:'block', color:'#8B949E', fontSize:'12px', marginTop:'2px'}}>Supported complaint types</span>
           </div>
 
-          {/* Architecture info */}
-          <div style={{ marginTop: "20px" }}>
-            <p
-              style={{
-                fontSize: "11px",
-                color: "#484F58",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                marginBottom: "10px",
-                fontWeight: "600",
-              }}
-            >
-              Architecture
-            </p>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-              }}
-            >
-              {[
-                { label: "NER Engine", value: "Compiled Regex (7 types)" },
-                { label: "Evidence Hash", value: "SHA-256 (hashlib)" },
-                { label: "Storage", value: "In-memory (Thread-safe)" },
-                { label: "API", value: "FastAPI + Uvicorn" },
-              ].map((row) => (
-                <div
-                  key={row.label}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span style={{ fontSize: "12px", color: "#8B949E" }}>
-                    {row.label}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      color: "#E6EDF3",
-                      fontFamily: "JetBrains Mono, monospace",
-                    }}
-                  >
-                    {row.value}
-                  </span>
-                </div>
+          <div style={{marginBottom:'16px'}}>
+            <div style={{fontSize:'10px', color:'#484F58', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'8px'}}>Crime Categories</div>
+            <div style={{display:'flex', flexWrap:'wrap', gap:'6px'}}>
+              {['UPI Fraud', 'Phishing', 'Identity Theft', 'Job Scam', 'Investment Fraud', 'Parcel Scam', 'KYC Fraud', 'Romance Scam'].map(type => (
+                <span key={type} style={{padding:'3px 10px', background:'rgba(0,217,255,0.08)', border:'1px solid rgba(0,217,255,0.2)', borderRadius:'20px', fontSize:'11px', color:'#8B949E'}}>{type}</span>
+              ))}
+            </div>
+          </div>
+
+          <div style={{marginBottom:'16px'}}>
+            <div style={{fontSize:'10px', color:'#484F58', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'8px'}}>Language Support</div>
+            <div style={{display:'flex', flexWrap:'wrap', gap:'6px'}}>
+              {['English', 'Hinglish', 'Kannada-EN', 'Telugu-EN', 'Tamil-EN'].map(lang => (
+                <span key={lang} style={{padding:'3px 10px', background:'rgba(139,92,246,0.08)', border:'1px solid rgba(139,92,246,0.2)', borderRadius:'20px', fontSize:'11px', color:'#8B949E'}}>{lang}</span>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div style={{fontSize:'10px', color:'#484F58', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'8px'}}>Extracted Entity Types</div>
+            <div style={{display:'flex', flexWrap:'wrap', gap:'6px'}}>
+              {['Phone Numbers', 'UPI IDs', 'URLs', 'Transaction IDs', 'Amounts (\u20B9)', 'Dates', 'Bank Accounts'].map(e => (
+                <span key={e} style={{padding:'3px 10px', background:'rgba(46,160,67,0.08)', border:'1px solid rgba(46,160,67,0.2)', borderRadius:'20px', fontSize:'11px', color:'#8B949E'}}>{e}</span>
               ))}
             </div>
           </div>
