@@ -24,7 +24,7 @@ def run_test():
     try:
         with open(pdf_path, "rb") as f:
             files = {"file": ("test_complaint.pdf", f, "application/pdf")}
-            data = {"submitted_by": "Test Script"}
+            data = {"submitted_by": "Officer R. Desai (Cyber Cell)"}
             
             print("Uploading to /api/ingest/upload...")
             resp = requests.post(url, files=files, data=data)

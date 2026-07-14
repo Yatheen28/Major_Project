@@ -456,7 +456,7 @@ export default function Dashboard() {
           <div style={{marginBottom:'16px'}}>
             <div style={{fontSize:'10px', color:'#484F58', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'8px'}}>Crime Categories</div>
             <div style={{display:'flex', flexWrap:'wrap', gap:'6px'}}>
-              {['UPI Fraud', 'Phishing', 'Identity Theft', 'Job Scam', 'Investment Fraud', 'Parcel Scam', 'KYC Fraud', 'Romance Scam'].map(type => (
+              {['Phishing', 'Online financial/UPI/banking fraud', 'Identity-theft scams', 'Social-media scams'].map(type => (
                 <span key={type} style={{padding:'3px 10px', background:'rgba(0,217,255,0.08)', border:'1px solid rgba(0,217,255,0.2)', borderRadius:'20px', fontSize:'11px', color:'#8B949E'}}>{type}</span>
               ))}
             </div>
@@ -465,7 +465,7 @@ export default function Dashboard() {
           <div style={{marginBottom:'16px'}}>
             <div style={{fontSize:'10px', color:'#484F58', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'8px'}}>Language Support</div>
             <div style={{display:'flex', flexWrap:'wrap', gap:'6px'}}>
-              {['English', 'Hinglish', 'Kannada-EN', 'Telugu-EN', 'Tamil-EN'].map(lang => (
+              {['English', 'Hinglish'].map(lang => (
                 <span key={lang} style={{padding:'3px 10px', background:'rgba(139,92,246,0.08)', border:'1px solid rgba(139,92,246,0.2)', borderRadius:'20px', fontSize:'11px', color:'#8B949E'}}>{lang}</span>
               ))}
             </div>
