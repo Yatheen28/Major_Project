@@ -5,3 +5,6 @@ python-multipart
 neo4j
 python-dotenv
 fpdf2
+pytesseract
+Pillow
+PyMuPDF

@@ -15,7 +15,7 @@ Endpoints:
     GET  /api/health                  — Health check
 """
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -23,7 +23,7 @@ from datetime import datetime
 import logging
 import uuid
 
-from app import models, hasher, extractor, timeline, graph_engine, certificate
+from app import models, hasher, extractor, timeline, graph_engine, certificate, ocr_engine
 from app.case_store import store
 
 logger = logging.getLogger(__name__)
@@ -122,6 +122,80 @@ async def ingest_complaint(complaint: models.ComplaintIn):
         graph_engine.sync_case_to_graph(case)
     except Exception as exc:
         # Non-fatal — the case is already saved locally; log and continue
+        logger.warning("Neo4j sync failed for %s: %s", case_id, exc)
+
+    return case
+
+
+# ---------------------------------------------------------------------------
+# POST /api/ingest/upload  (OCR — photo/PDF ingestion)
+# ---------------------------------------------------------------------------
+
+@app.post("/api/ingest/upload", response_model=models.CaseOut)
+async def ingest_upload(
+    file: UploadFile = File(..., description="Photo (JPEG/PNG) or PDF of a complaint"),
+    submitted_by: str = Form(default="investigator", description="Submitting officer"),
+):
+    """
+    Ingest a complaint from an uploaded photo or PDF.
+
+    Extracts text via OCR (images) or PDF text extraction, then feeds
+    the result into the same pipeline as POST /api/ingest.
+    """
+    # Read file bytes
+    file_bytes = await file.read()
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    # Extract text
+    try:
+        extracted_text = ocr_engine.extract_text_from_file(
+            file_bytes,
+            content_type=file.content_type or "",
+            filename=file.filename or "unknown",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        logger.error("OCR extraction failed: %s", exc)
+        raise HTTPException(status_code=500, detail=f"OCR extraction failed: {exc}")
+
+    if len(extracted_text) < 20:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Extracted text too short ({len(extracted_text)} chars). "
+                   f"Minimum 20 characters required. The file may not contain readable text.",
+        )
+
+    # Feed into the SAME pipeline as text-based ingest
+    case_id = "CYB-" + uuid.uuid4().hex[:8].upper()
+    sha256_hash = hasher.compute_sha256(extracted_text)
+    entities = extractor.extract_entities(extracted_text)
+
+    entity_counts: dict[str, int] = {}
+    for entity in entities:
+        entity_counts[entity.entity_type] = entity_counts.get(entity.entity_type, 0) + 1
+
+    tl = timeline.build_timeline(extracted_text, entities)
+    submitted_at = datetime.utcnow().isoformat() + "Z"
+
+    case = models.CaseOut(
+        case_id=case_id,
+        sha256_hash=sha256_hash,
+        submitted_at=submitted_at,
+        submitted_by=submitted_by,
+        raw_text=extracted_text,
+        entities=entities,
+        timeline=tl,
+        entity_counts=entity_counts,
+        status="PROCESSED",
+    )
+
+    store.save_case(case)
+
+    try:
+        graph_engine.sync_case_to_graph(case)
+    except Exception as exc:
         logger.warning("Neo4j sync failed for %s: %s", case_id, exc)
 
     return case

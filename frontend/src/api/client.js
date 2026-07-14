@@ -140,3 +140,25 @@ export function getCertificateUrl(caseId) {
   return `${api.defaults.baseURL}/api/cases/${caseId}/certificate`;
 }
 
+/**
+ * Upload a photo or PDF complaint for OCR-based ingestion.
+ * @param {File} file - The image or PDF file to upload.
+ * @param {string} submittedBy - Officer name or badge ID.
+ * @returns {Promise<object>} Full CaseOut record.
+ */
+export async function ingestUpload(file, submittedBy = "investigator") {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("submitted_by", submittedBy);
+    const response = await api.post("/api/ingest/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 120000, // OCR can take longer
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.detail || error.message || "Failed to process uploaded file"
+    );
+  }
+}

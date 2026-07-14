@@ -18,6 +18,7 @@ import {
 
 import Dashboard from "./components/Dashboard";
 import ComplaintForm from "./components/ComplaintForm";
+import FileUploadForm from "./components/FileUploadForm";
 import CaseList from "./components/CaseList";
 import CaseDetail from "./components/CaseDetail";
 
@@ -26,7 +27,8 @@ import CaseDetail from "./components/CaseDetail";
    ====================================================================== */
 const PAGE_TITLES = {
   "/": "Dashboard",
-  "/new-case": "New Case",
+  "/new-case": "New Case (Text)",
+  "/upload-case": "New Case (Upload)",
   "/cases": "Investigation Cases",
   "/about": "About",
 };
@@ -409,7 +411,8 @@ export default function App() {
             MAIN
           </p>
           <SidebarLink to="/" icon={LayoutDashboard} label="Dashboard" end />
-          <SidebarLink to="/new-case" icon={FilePlus} label="New Case" />
+          <SidebarLink to="/new-case" icon={FilePlus} label="New Case (Text)" />
+          <SidebarLink to="/upload-case" icon={FilePlus} label="New Case (Upload)" />
           <SidebarLink to="/cases" icon={FolderOpen} label="Cases" />
 
           <div
@@ -579,13 +582,18 @@ export default function App() {
 
         {/* PAGE CONTENT */}
         <main style={{ padding: "24px", flex: 1 }}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/new-case" element={<ComplaintForm />} />
-            <Route path="/cases" element={<CaseList />} />
-            <Route path="/cases/:caseId" element={<CaseDetail />} />
-            <Route path="/about" element={<About />} />
-          </Routes>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/new-case" element={<ComplaintForm />} />
+              <Route path="/upload-case" element={
+                <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+                  <FileUploadForm />
+                </div>
+              } />
+              <Route path="/cases" element={<CaseList />} />
+              <Route path="/cases/:caseId" element={<CaseDetail />} />
+              <Route path="/about" element={<About />} />
+            </Routes>
         </main>
       </div>
     </div>
