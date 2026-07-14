@@ -11,6 +11,7 @@ import { getCase } from "../api/client";
 import HashDisplay from "./HashDisplay";
 import EntityDisplay from "./EntityDisplay";
 import TimelineView from "./TimelineView";
+import LinkedCasesTable from "./LinkedCasesTable";
 
 /* ======================================================================
    CASE DETAIL
@@ -300,6 +301,11 @@ export default function CaseDetail() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Correlation table — Phase A4 */}
+      <div style={{ marginTop: "24px" }}>
+        <LinkedCasesTable caseId={caseData.case_id} />
       </div>
     </div>
   );

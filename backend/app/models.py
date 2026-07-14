@@ -7,6 +7,7 @@ timeline reconstruction, and case management.
 
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
 
 
 # ---------------------------------------------------------------------------
@@ -85,3 +86,32 @@ class StatsResponse(BaseModel):
     total_cases: int = Field(default=0, description="Total number of ingested cases")
     total_entities: int = Field(default=0, description="Sum of all extracted entities across cases")
     by_type: dict[str, int] = Field(default_factory=dict, description="Entity counts aggregated by type")
+
+
+# ---------------------------------------------------------------------------
+# Correlation & certificate models (Phase A2/A3)
+# ---------------------------------------------------------------------------
+
+class LinkedCase(BaseModel):
+    """A case linked to another via a shared forensic entity."""
+    case_id: str
+    shared_entity_value: str
+    shared_entity_type: str = Field(..., description="phone | upi_id | url | transaction_id")
+    risk_score: float
+
+class RiskScoreOut(BaseModel):
+    """Risk score for a single entity based on cross-case recurrence."""
+    entity_value: str
+    entity_type: str
+    case_count: int = Field(..., description="How many distinct cases reference this entity")
+    degree_centrality: float
+    risk_score: float = Field(..., description="Weighted combination, 0-100")
+
+class CertificateOut(BaseModel):
+    """Metadata about a generated BSA 2023 §63 evidence certificate."""
+    case_id: str
+    sha256_hash: str
+    generated_at: datetime
+    part_a_complete: bool = Field(default=True, description="Auto-filled")
+    part_b_complete: bool = Field(default=False, description="Requires human expert signature")
+

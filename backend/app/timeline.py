@@ -6,7 +6,7 @@ their surrounding textual context. Flags uncertain / relative dates.
 """
 
 import re
-from datetime import datetime
+import datetime
 from app.models import EntityOut, TimelineEvent
 
 
@@ -27,12 +27,12 @@ _DATE_FORMATS = [
 _RELATIVE_TOKENS = {"kal", "aaj", "parso", "today", "yesterday", "tomorrow"}
 
 
-def _try_parse_date(value: str) -> datetime | None:
+def _try_parse_date(value: str) -> datetime.datetime | None:
     """Attempt to parse a date string into a datetime object."""
     cleaned = value.strip().replace(",", ", ").replace("  ", " ")
     for fmt in _DATE_FORMATS:
         try:
-            return datetime.strptime(cleaned, fmt)
+            return datetime.datetime.strptime(cleaned, fmt)
         except ValueError:
             continue
     return None
@@ -74,7 +74,7 @@ def build_timeline(text: str, entities: list[EntityOut]) -> list[TimelineEvent]:
     # Collect all non-date entity values for cross-referencing
     all_entity_values = [e.value for e in entities if e.entity_type != "DATE"]
 
-    events: list[tuple[datetime | None, TimelineEvent]] = []
+    events: list[tuple[datetime.datetime | None, TimelineEvent]] = []
 
     for date_ent in date_entities:
         # Build context window: 40 chars before, 80 chars after
@@ -113,7 +113,7 @@ def build_timeline(text: str, entities: list[EntityOut]) -> list[TimelineEvent]:
         events.append((parsed_dt, event))
 
     # Sort: parsed dates first (chronologically), then unparsed ones at the end
-    def sort_key(item: tuple[datetime | None, TimelineEvent]):
+    def sort_key(item: tuple[datetime.datetime | None, TimelineEvent]):
         dt, _ = item
         if dt is not None:
             return (0, dt.isoformat())

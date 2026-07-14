@@ -114,3 +114,29 @@ export async function getHealth() {
     );
   }
 }
+
+/**
+ * Fetch cases linked via shared forensic entities.
+ * @param {string} caseId - Case identifier.
+ * @returns {Promise<Array>} List of LinkedCase objects.
+ */
+export async function getLinkedCases(caseId) {
+  try {
+    const response = await api.get(`/api/cases/${caseId}/links`);
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.detail || error.message || "Failed to fetch linked cases"
+    );
+  }
+}
+
+/**
+ * Get the URL for downloading a BSA certificate PDF.
+ * @param {string} caseId - Case identifier.
+ * @returns {string} Full URL for the certificate endpoint.
+ */
+export function getCertificateUrl(caseId) {
+  return `${api.defaults.baseURL}/api/cases/${caseId}/certificate`;
+}
+

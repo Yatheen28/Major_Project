@@ -42,7 +42,25 @@ training_data/
 raw_data/
 logs/
 *.log
-.agents
+.agents/
 
 # Keep sample data
 !data/sample_complaints.json
+# --------------------------
+# AI / Graphify
+# --------------------------
+graphify-out/
+.graphify*
+GRAPH_REPORT.md
+graph.html
+graph.json
+manifest.json
+
+# AI-generated documentation
+docs/
+
+# Serena / Antigravity (if ever copied into this repo)
+.agent/
+.agents/
+.serena/
+

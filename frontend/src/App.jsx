@@ -312,7 +312,7 @@ export default function App() {
         const res = await fetch('http://localhost:8000/api/stats');
         const data = await res.json();
         setSessionStats(data);
-      } catch {}
+      } catch { }
     };
     fetchStats();
     const interval = setInterval(fetchStats, 30000);
@@ -435,21 +435,21 @@ export default function App() {
         </nav>
 
         {/* Bottom session stats */}
-        <div style={{marginTop:'auto', padding:'16px', borderTop:'1px solid #21262D'}}>
-          <div style={{fontSize:'10px', color:'#484F58', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'10px'}}>Session</div>
-          <div style={{display:'flex', justifyContent:'space-between', marginBottom:'6px'}}>
-            <span style={{fontSize:'12px', color:'#8B949E'}}>Cases processed</span>
-            <span style={{fontSize:'12px', color:'#00D9FF', fontFamily:'JetBrains Mono, monospace', fontWeight:'600'}}>{sessionStats.total_cases}</span>
+        <div style={{ marginTop: 'auto', padding: '16px', borderTop: '1px solid #21262D' }}>
+          <div style={{ fontSize: '10px', color: '#484F58', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>Session</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <span style={{ fontSize: '12px', color: '#8B949E' }}>Cases processed</span>
+            <span style={{ fontSize: '12px', color: '#00D9FF', fontFamily: 'JetBrains Mono, monospace', fontWeight: '600' }}>{sessionStats.total_cases}</span>
           </div>
-          <div style={{display:'flex', justifyContent:'space-between', marginBottom:'12px'}}>
-            <span style={{fontSize:'12px', color:'#8B949E'}}>Entities extracted</span>
-            <span style={{fontSize:'12px', color:'#8B5CF6', fontFamily:'JetBrains Mono, monospace', fontWeight:'600'}}>{sessionStats.total_entities}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{ fontSize: '12px', color: '#8B949E' }}>Entities extracted</span>
+            <span style={{ fontSize: '12px', color: '#8B5CF6', fontFamily: 'JetBrains Mono, monospace', fontWeight: '600' }}>{sessionStats.total_entities}</span>
           </div>
-          <div style={{height:'1px', background:'#21262D', marginBottom:'10px'}} />
-          <div style={{fontSize:'10px', color:'#484F58', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'6px'}}>NER Engine</div>
-          <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
-            <div style={{width:'6px', height:'6px', borderRadius:'50%', background:'#2EA043'}} />
-            <span style={{fontSize:'12px', color:'#8B949E'}}>Regex Pipeline — Active</span>
+          <div style={{ height: '1px', background: '#21262D', marginBottom: '10px' }} />
+          <div style={{ fontSize: '10px', color: '#484F58', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>NER Engine</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2EA043' }} />
+            <span style={{ fontSize: '12px', color: '#8B949E' }}>Regex Pipeline — Active</span>
           </div>
         </div>
       </aside>

@@ -2,38 +2,54 @@
 CyberIntel API — FastAPI Application
 
 AI-Assisted Cybercrime Investigation and Forensic Intelligence System
-Phase I — Regex NER Pipeline, SHA-256 Evidence Hashing, In-Memory Storage
+Phase I+II — Regex NER Pipeline, SHA-256 Evidence Hashing, Neo4j Correlation
 
 Endpoints:
-    POST /api/ingest          — Ingest a complaint and extract entities
-    GET  /api/cases           — List all cases (summaries, newest first)
-    GET  /api/cases/{case_id} — Retrieve full case record
-    GET  /api/cases/{case_id}/verify — Verify SHA-256 hash integrity
-    GET  /api/stats           — Aggregate entity statistics
-    GET  /api/health          — Health check
+    POST /api/ingest                  — Ingest a complaint and extract entities
+    GET  /api/cases                   — List all cases (summaries, newest first)
+    GET  /api/cases/{case_id}         — Retrieve full case record
+    GET  /api/cases/{case_id}/verify  — Verify SHA-256 hash integrity
+    GET  /api/cases/{case_id}/links   — Find cases linked via shared entities
+    GET  /api/cases/{case_id}/risk    — Risk scores for entities in this case
+    GET  /api/stats                   — Aggregate entity statistics
+    GET  /api/health                  — Health check
 """
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from datetime import datetime
+import logging
 import uuid
 
-from app import models, hasher, extractor, timeline
+from app import models, hasher, extractor, timeline, graph_engine, certificate
 from app.case_store import store
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
 # Application factory
 # ---------------------------------------------------------------------------
 
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    """Startup/shutdown lifecycle — closes Neo4j driver on exit."""
+    yield
+    graph_engine.close_driver()
+
+
 app = FastAPI(
     title="CyberIntel API",
     description=(
-        "AI-Assisted Cybercrime Investigation and Forensic Intelligence System — Phase I. "
+        "AI-Assisted Cybercrime Investigation and Forensic Intelligence System — Phase I+II. "
         "Provides regex-based Named Entity Recognition for Hinglish cybercrime complaints, "
-        "SHA-256 evidence hashing (BSA 2023 §63), and chronological timeline reconstruction."
+        "SHA-256 evidence hashing (BSA 2023 §63), chronological timeline reconstruction, "
+        "and Neo4j-based cross-case entity correlation."
     ),
-    version="0.1.0",
+    version="0.2.0",
+    lifespan=lifespan,
 )
 
 # CORS — allow the Vite dev server and common local origins
@@ -100,6 +116,14 @@ async def ingest_complaint(complaint: models.ComplaintIn):
     )
 
     store.save_case(case)
+
+    # Step 8: Sync to Neo4j graph for cross-case correlation
+    try:
+        graph_engine.sync_case_to_graph(case)
+    except Exception as exc:
+        # Non-fatal — the case is already saved locally; log and continue
+        logger.warning("Neo4j sync failed for %s: %s", case_id, exc)
+
     return case
 
 
@@ -174,6 +198,66 @@ async def health_check():
     """API health check and system status."""
     return models.HealthResponse(
         status="ok",
-        version="0.1.0",
+        version="0.2.0",
         total_cases=store.total_cases,
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /api/cases/{case_id}/links
+# ---------------------------------------------------------------------------
+
+@app.get("/api/cases/{case_id}/links", response_model=list[models.LinkedCase])
+async def get_linked_cases(case_id: str):
+    """Find cases linked via shared forensic entities."""
+    case = store.get_case(case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
+    try:
+        return graph_engine.find_linked_cases(case_id)
+    except Exception as exc:
+        logger.error("Neo4j query failed for links on %s: %s", case_id, exc)
+        raise HTTPException(status_code=503, detail="Graph database unavailable")
+
+
+# ---------------------------------------------------------------------------
+# GET /api/cases/{case_id}/risk
+# ---------------------------------------------------------------------------
+
+@app.get("/api/cases/{case_id}/risk", response_model=list[models.RiskScoreOut])
+async def get_risk_scores(case_id: str):
+    """Risk scores for all correlatable entities in this case."""
+    case = store.get_case(case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
+    try:
+        return graph_engine.compute_risk_scores(case_id)
+    except Exception as exc:
+        logger.error("Neo4j query failed for risk on %s: %s", case_id, exc)
+        raise HTTPException(status_code=503, detail="Graph database unavailable")
+
+
+# ---------------------------------------------------------------------------
+# GET /api/cases/{case_id}/certificate
+# ---------------------------------------------------------------------------
+
+@app.get("/api/cases/{case_id}/certificate")
+async def get_certificate(case_id: str):
+    """
+    Generate and return a BSA 2023 §63 evidence certificate as PDF.
+
+    Part A is auto-filled with case metadata and SHA-256 hash.
+    Part B is a blank signature block for the certifying expert.
+    """
+    case = store.get_case(case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
+
+    pdf_bytes = certificate.generate_certificate(case)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'inline; filename="BSA_Certificate_{case_id}.pdf"'
+        },
     )
