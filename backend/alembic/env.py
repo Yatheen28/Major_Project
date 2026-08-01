@@ -9,6 +9,7 @@ from alembic import context
 from dotenv import load_dotenv
 
 import sys
+from uuid import uuid4
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.db_models import Base
@@ -43,6 +44,10 @@ async def run_async_migrations() -> None:
     connectable = create_async_engine(
         database_url,
         poolclass=pool.NullPool,
+        connect_args={
+            "prepared_statement_cache_size": 0,
+            "statement_cache_size": 0,
+        },
     )
 
     async with connectable.connect() as connection:
