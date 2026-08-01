@@ -8,3 +8,6 @@ fpdf2
 pytesseract
 Pillow
 PyMuPDF
+sqlalchemy
+asyncpg
+alembic
