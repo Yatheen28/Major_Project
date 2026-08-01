@@ -56,7 +56,8 @@ graph.html
 graph.json
 manifest.json
 
-# AI-generated documentation — docs/ is now tracked (project design docs)
+# AI-generated documentation
+docs/
 
 # Serena / Antigravity (if ever copied into this repo)
 .agent/
