@@ -225,3 +225,22 @@ async def test_search_cases_stub(db: AsyncSession):
     """search_cases() stub should return an empty list (Phase 3 placeholder)."""
     results = await repository.search_cases(db, query="anything")
     assert results == []
+
+
+@pytest.mark.asyncio
+async def test_iso8601_trailing_z_parsing(db: AsyncSession):
+    """Explicitly test that submitted_at strings ending in 'Z' are parsed correctly."""
+    # This prevents regressions if the custom parsing logic in save_case is removed.
+    case = _make_case(case_id="CYB-TIMEZONE-Z")
+    case_dict = case.model_dump()
+    case_dict["submitted_at"] = "2026-07-30T12:34:56Z"
+    case = CaseOut(**case_dict)
+    
+    saved_case = await repository.save_case(db, case)
+    
+    # Verify the datetime was parsed into postgres correctly and is timezone-aware
+    assert saved_case.submitted_at.tzinfo is not None
+    # Verify we can get it back without errors
+    retrieved = await repository.get_case(db, "CYB-TIMEZONE-Z")
+    assert retrieved is not None
+    assert retrieved.submitted_at == "2026-07-30T12:34:56Z"

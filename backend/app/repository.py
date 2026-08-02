@@ -57,7 +57,7 @@ def _orm_case_to_full(case: Case) -> CaseOut:
         case_id=case.case_id,
         sha256_hash=case.sha256_hash,
         submitted_at=(
-            case.submitted_at.isoformat() + "Z"
+            case.submitted_at.isoformat().replace("+00:00", "Z")
             if hasattr(case.submitted_at, "isoformat")
             else str(case.submitted_at)
         ),
@@ -76,7 +76,7 @@ def _orm_case_to_summary(case: Case) -> CaseSummary:
         case_id=case.case_id,
         sha256_hash=case.sha256_hash,
         submitted_at=(
-            case.submitted_at.isoformat() + "Z"
+            case.submitted_at.isoformat().replace("+00:00", "Z")
             if hasattr(case.submitted_at, "isoformat")
             else str(case.submitted_at)
         ),
