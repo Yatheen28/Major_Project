@@ -15,7 +15,7 @@ Endpoints:
     GET  /api/health                  — Health check
 """
 
-from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile, Depends
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Query, UploadFile, Depends
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -30,6 +30,24 @@ from app.database import get_db
 from app.case_store import store  # kept as fallback until all routes are verified on PG
 
 logger = logging.getLogger(__name__)
+
+
+def _sync_case_background(case: models.CaseOut) -> None:
+    """Background task: sync a case to Neo4j graph.
+
+    Failures are logged at ERROR level (not silently swallowed) so a
+    missing correlation graph is discoverable, but they never block the
+    HTTP response — the Postgres save is already committed.
+    """
+    try:
+        graph_engine.sync_case_to_graph(case)
+    except Exception as exc:
+        logger.error(
+            "Neo4j background sync FAILED for %s: %s "
+            "(case is safe in Postgres, graph will be stale)",
+            case.case_id,
+            exc,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -73,7 +91,11 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 
 @app.post("/api/ingest", response_model=models.CaseOut)
-async def ingest_complaint(complaint: models.ComplaintIn, db: AsyncSession = Depends(get_db)):
+async def ingest_complaint(
+    complaint: models.ComplaintIn,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+):
     """
     Ingest a cybercrime complaint.
 
@@ -120,12 +142,8 @@ async def ingest_complaint(complaint: models.ComplaintIn, db: AsyncSession = Dep
 
     await repository.save_case(db, case)
 
-    # Step 8: Sync to Neo4j graph for cross-case correlation
-    try:
-        graph_engine.sync_case_to_graph(case)
-    except Exception as exc:
-        # Non-fatal — the case is already saved locally; log and continue
-        logger.warning("Neo4j sync failed for %s: %s", case_id, exc)
+    # Step 8: Sync to Neo4j graph in the background — never blocks response
+    background_tasks.add_task(_sync_case_background, case)
 
     return case
 
@@ -138,6 +156,7 @@ async def ingest_complaint(complaint: models.ComplaintIn, db: AsyncSession = Dep
 async def ingest_upload(
     file: UploadFile = File(..., description="Photo (JPEG/PNG) or PDF of a complaint"),
     submitted_by: str = Form(default="investigator", description="Submitting officer"),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -197,10 +216,8 @@ async def ingest_upload(
 
     await repository.save_case(db, case)
 
-    try:
-        graph_engine.sync_case_to_graph(case)
-    except Exception as exc:
-        logger.warning("Neo4j sync failed for %s: %s", case_id, exc)
+    # Neo4j sync in background — never blocks response
+    background_tasks.add_task(_sync_case_background, case)
 
     return case
 
