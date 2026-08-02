@@ -56,8 +56,14 @@ def _get_driver():
             raise RuntimeError(
                 "Missing NEO4J_URI / NEO4J_USERNAME / NEO4J_PASSWORD in .env"
             )
-        _driver = GraphDatabase.driver(uri, auth=(user, password))
-        logger.info("Neo4j driver created for %s", uri)
+        _driver = GraphDatabase.driver(
+            uri,
+            auth=(user, password),
+            connection_timeout=5,              # 5s TCP connect (default 30s)
+            max_transaction_retry_time=3,      # 3s retry ceiling (default 30s)
+            connection_acquisition_timeout=5,  # 5s pool wait  (default 60s)
+        )
+        logger.info("Neo4j driver created for %s (fast-fail timeouts)", uri)
     return _driver
 
 
