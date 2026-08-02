@@ -15,16 +15,19 @@ Endpoints:
     GET  /api/health                  — Health check
 """
 
-from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile, Depends
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 import uuid
 
 from app import models, hasher, extractor, timeline, graph_engine, certificate, ocr_engine
-from app.case_store import store
+from app import repository
+from app.database import get_db
+from app.case_store import store  # kept as fallback until all routes are verified on PG
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +73,7 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 
 @app.post("/api/ingest", response_model=models.CaseOut)
-async def ingest_complaint(complaint: models.ComplaintIn):
+async def ingest_complaint(complaint: models.ComplaintIn, db: AsyncSession = Depends(get_db)):
     """
     Ingest a cybercrime complaint.
 
@@ -115,7 +118,7 @@ async def ingest_complaint(complaint: models.ComplaintIn):
         status="PROCESSED",
     )
 
-    store.save_case(case)
+    await repository.save_case(db, case)
 
     # Step 8: Sync to Neo4j graph for cross-case correlation
     try:
@@ -135,6 +138,7 @@ async def ingest_complaint(complaint: models.ComplaintIn):
 async def ingest_upload(
     file: UploadFile = File(..., description="Photo (JPEG/PNG) or PDF of a complaint"),
     submitted_by: str = Form(default="investigator", description="Submitting officer"),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Ingest a complaint from an uploaded photo or PDF.
@@ -191,7 +195,7 @@ async def ingest_upload(
         status="PROCESSED",
     )
 
-    store.save_case(case)
+    await repository.save_case(db, case)
 
     try:
         graph_engine.sync_case_to_graph(case)
@@ -206,9 +210,9 @@ async def ingest_upload(
 # ---------------------------------------------------------------------------
 
 @app.get("/api/cases", response_model=list[models.CaseSummary])
-async def list_cases():
+async def list_cases(db: AsyncSession = Depends(get_db)):
     """Return all cases as lightweight summaries, newest first."""
-    return store.get_all_cases()
+    return await repository.get_all_cases(db)
 
 
 # ---------------------------------------------------------------------------
@@ -216,9 +220,9 @@ async def list_cases():
 # ---------------------------------------------------------------------------
 
 @app.get("/api/cases/{case_id}", response_model=models.CaseOut)
-async def get_case(case_id: str):
+async def get_case(case_id: str, db: AsyncSession = Depends(get_db)):
     """Retrieve the full case record by ID."""
-    case = store.get_case(case_id)
+    case = await repository.get_case(db, case_id)
     if case is None:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
     return case
@@ -232,6 +236,7 @@ async def get_case(case_id: str):
 async def verify_case_hash(
     case_id: str,
     expected_hash: str = Query(..., description="SHA-256 hash to verify against"),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Verify the integrity of a case's evidence hash.
@@ -239,7 +244,7 @@ async def verify_case_hash(
     Compares the stored SHA-256 hash with a user-provided hash to confirm
     that the complaint text has not been tampered with since ingestion.
     """
-    case = store.get_case(case_id)
+    case = await repository.get_case(db, case_id)
     if case is None:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
 
@@ -253,14 +258,10 @@ async def verify_case_hash(
     }
 
 
-# ---------------------------------------------------------------------------
-# GET /api/stats
-# ---------------------------------------------------------------------------
-
 @app.get("/api/stats", response_model=models.StatsResponse)
-async def get_stats():
+async def get_stats(db: AsyncSession = Depends(get_db)):
     """Return aggregate entity statistics across all cases."""
-    return store.get_stats()
+    return await repository.get_stats(db)
 
 
 # ---------------------------------------------------------------------------
@@ -268,12 +269,13 @@ async def get_stats():
 # ---------------------------------------------------------------------------
 
 @app.get("/api/health", response_model=models.HealthResponse)
-async def health_check():
+async def health_check(db: AsyncSession = Depends(get_db)):
     """API health check and system status."""
+    total = await repository.get_total_cases(db)
     return models.HealthResponse(
         status="ok",
         version="0.2.0",
-        total_cases=store.total_cases,
+        total_cases=total,
     )
 
 
@@ -282,9 +284,9 @@ async def health_check():
 # ---------------------------------------------------------------------------
 
 @app.get("/api/cases/{case_id}/links", response_model=list[models.LinkedCase])
-async def get_linked_cases(case_id: str):
+async def get_linked_cases(case_id: str, db: AsyncSession = Depends(get_db)):
     """Find cases linked via shared forensic entities."""
-    case = store.get_case(case_id)
+    case = await repository.get_case(db, case_id)
     if case is None:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
     try:
@@ -299,9 +301,9 @@ async def get_linked_cases(case_id: str):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/cases/{case_id}/risk", response_model=list[models.RiskScoreOut])
-async def get_risk_scores(case_id: str):
+async def get_risk_scores(case_id: str, db: AsyncSession = Depends(get_db)):
     """Risk scores for all correlatable entities in this case."""
-    case = store.get_case(case_id)
+    case = await repository.get_case(db, case_id)
     if case is None:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
     try:
@@ -316,14 +318,14 @@ async def get_risk_scores(case_id: str):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/cases/{case_id}/certificate")
-async def get_certificate(case_id: str):
+async def get_certificate(case_id: str, db: AsyncSession = Depends(get_db)):
     """
     Generate and return a BSA 2023 §63 evidence certificate as PDF.
 
     Part A is auto-filled with case metadata and SHA-256 hash.
     Part B is a blank signature block for the certifying expert.
     """
-    case = store.get_case(case_id)
+    case = await repository.get_case(db, case_id)
     if case is None:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
 
