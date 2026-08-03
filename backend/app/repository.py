@@ -222,6 +222,28 @@ async def get_total_cases(db: AsyncSession) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Admin operations
+# ---------------------------------------------------------------------------
+
+async def get_all_full_cases(db: AsyncSession) -> list[CaseOut]:
+    """
+    Return all full case records (eager loaded).
+    Useful for background jobs like graph resync.
+    """
+    stmt = (
+        select(Case)
+        .order_by(Case.submitted_at.desc())
+        .options(
+            selectinload(Case.entities),
+            selectinload(Case.timeline_events),
+        )
+    )
+    result = await db.execute(stmt)
+    cases = result.scalars().all()
+    return [_orm_case_to_full(c) for c in cases]
+
+
+# ---------------------------------------------------------------------------
 # Search — stub for Phase 3
 # ---------------------------------------------------------------------------
 

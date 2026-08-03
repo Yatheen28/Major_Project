@@ -354,3 +354,40 @@ async def get_certificate(case_id: str, db: AsyncSession = Depends(get_db)):
             "Content-Disposition": f'inline; filename="BSA_Certificate_{case_id}.pdf"'
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/admin/resync-graph
+# ---------------------------------------------------------------------------
+
+def _resync_all_cases_background(cases: list[models.CaseOut]) -> None:
+    """Background task: sync multiple cases to Neo4j graph."""
+    success = 0
+    for case in cases:
+        try:
+            graph_engine.sync_case_to_graph(case)
+            success += 1
+        except Exception as exc:
+            logger.error(
+                "Neo4j background resync FAILED for %s: %s",
+                case.case_id,
+                exc,
+            )
+    logger.info("Graph resync complete: %d/%d cases synced to Neo4j.", success, len(cases))
+
+
+@app.post("/api/admin/resync-graph")
+async def resync_graph(
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Admin endpoint to resync all cases from PostgreSQL to Neo4j.
+    Runs the synchronization in the background to avoid timeouts.
+    """
+    cases = await repository.get_all_full_cases(db)
+    background_tasks.add_task(_resync_all_cases_background, cases)
+    return {
+        "status": "accepted",
+        "message": f"Resync started for {len(cases)} cases in the background"
+    }
