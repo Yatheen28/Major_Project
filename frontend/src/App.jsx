@@ -311,7 +311,8 @@ export default function App() {
   React.useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/stats');
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        const res = await fetch(`${baseUrl}/api/stats`);
         const data = await res.json();
         setSessionStats(data);
       } catch { }
